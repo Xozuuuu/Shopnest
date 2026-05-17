@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập — ShopNest</title>
+  <meta name="description" content="Đăng nhập tài khoản ShopNest để mua sắm thông minh với hàng nghìn sản phẩm chính hãng." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║           AUTH PAGE                  ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <!-- Logo -->
+      <div class="auth-logo">
+        <a href="index.html">🏠 Shop<span>Nest</span></a>
+      </div>
+
+      <h1 class="auth-title">Chào mừng trở lại!</h1>
+      <p class="auth-sub">Đăng nhập để tiếp tục mua sắm</p>
+
+      <!-- Form -->
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Email</label>
+          <input class="form-control" type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+          <div class="form-error" id="emailError"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">Mật khẩu</label>
+          <div class="input-group">
+            <input class="form-control" type="password" id="loginPassword" placeholder="Nhập mật khẩu" autocomplete="current-password" />
+            <button type="button" class="toggle-pw" id="togglePw" title="Hiển thị mật khẩu">👁️</button>
+          </div>
+          <div class="form-error" id="pwError"></div>
+        </div>
+
+        <div class="flex justify-between items-center mb-16" style="font-size:13px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-secondary);">
+            <input type="checkbox" id="rememberMe" style="accent-color:var(--primary);width:15px;height:15px;" />
+            Ghi nhớ đăng nhập
+          </label>
+          <a href="#" style="color:var(--primary);font-weight:600;">Quên mật khẩu?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">Đăng nhập</button>
+      </form>
+
+      <!-- Divider -->
+      <div class="auth-divider">hoặc</div>
+
+      <!-- Social login (mock) -->
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;" onclick="showToast('Tính năng đang phát triển','info')">
+          🔵 Google
+        </button>
+        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;" onclick="showToast('Tính năng đang phát triển','info')">
+          🔷 Facebook
+        </button>
+      </div>
+
+      <!-- Switch -->
+      <div class="auth-switch">
+        Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Login Page Script
+  ============================================ */
+
+  const form     = document.getElementById('loginForm');
+  const emailIn  = document.getElementById('loginEmail');
+  const pwIn     = document.getElementById('loginPassword');
+  const emailErr = document.getElementById('emailError');
+  const pwErr    = document.getElementById('pwError');
+  const togglePw = document.getElementById('togglePw');
+
+  /* ── Toggle Password ────────────────────── */
+  togglePw.addEventListener('click', () => {
+    const isPassword = pwIn.type === 'password';
+    pwIn.type = isPassword ? 'text' : 'password';
+    togglePw.textContent = isPassword ? '🙈' : '👁️';
+  });
+
+  /* ── Validation ─────────────────────────── */
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function clearErrors() {
+    emailErr.textContent = '';
+    pwErr.textContent = '';
+    emailIn.classList.remove('error');
+    pwIn.classList.remove('error');
+  }
+
+  /* ── Submit ─────────────────────────────── */
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const email = emailIn.value.trim();
+    const pw    = pwIn.value;
+    let valid   = true;
+
+    if (!email) {
+      emailErr.textContent = 'Vui lòng nhập email';
+      emailIn.classList.add('error');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      emailErr.textContent = 'Email không hợp lệ';
+      emailIn.classList.add('error');
+      valid = false;
+    }
+
+    if (!pw) {
+      pwErr.textContent = 'Vui lòng nhập mật khẩu';
+      pwIn.classList.add('error');
+      valid = false;
+    } else if (pw.length < 6) {
+      pwErr.textContent = 'Mật khẩu cần ít nhất 6 ký tự';
+      pwIn.classList.add('error');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    /* ── Mock Login ───────────────────────── */
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = 'Đang đăng nhập...';
+
+    // Simulate API delay
+    await new Promise(r => setTimeout(r, 800));
+
+    // Mock: accept any valid email/password
+    const mockUser = {
+      id: 1,
+      name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      email: email,
+      phone: '0901234567',
+      address: 'TP. Hồ Chí Minh',
+      role: 'user',
+      avatar: '👤',
+      createdAt: new Date().toISOString(),
+    };
+    const mockToken = 'mock_token_' + Date.now();
+
+    Auth.save(mockToken, mockUser);
+    showToast('Đăng nhập thành công! 🎉', 'success');
+
+    setTimeout(() => {
+      location.href = 'index.html';
+    }, 600);
+  });
+
+  /* ── Redirect if already logged in ──────── */
+  if (Auth.isLoggedIn()) {
+    location.href = 'index.html';
+  }
+  </script>
+</body>
+</html>

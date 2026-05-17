@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tất cả sản phẩm — ShopNest</title>
+  <meta name="description" content="Khám phá hàng nghìn sản phẩm chính hãng trên ShopNest — Điện tử, thời trang, gia dụng và nhiều hơn nữa." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Products page specific ────────────── */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .sort-bar span { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .sort-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .sort-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .products-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .results-count { font-size: 13px; color: var(--text-muted); }
+    .price-range {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .price-range input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      outline: none;
+    }
+    .price-range input:focus { border-color: var(--primary); }
+    .price-range-sep { color: var(--text-muted); font-size: 12px; }
+    .filter-apply {
+      margin-top: 10px;
+      padding: 6px 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    .filter-apply:hover { background: var(--primary-dark); }
+    .rating-filter { display: flex; align-items: center; gap: 4px; padding: 4px 0; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+    .rating-filter:hover { color: var(--primary); }
+    .rating-filter .stars { color: #facc15; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html"    data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html"  data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html"   data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+    <div class="container section">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumbCurrent">Tất cả sản phẩm</span>
+      </div>
+
+      <div class="layout-with-sidebar">
+
+        <!-- ── Sidebar Filters ──────────────── -->
+        <aside class="sidebar card">
+          <div class="card-body">
+            <!-- Category filter -->
+            <div class="filter-group">
+              <div class="filter-label">📂 Danh mục</div>
+              <label class="filter-option"><input type="checkbox" value="dien-tu"    class="cat-filter" /> Điện tử</label>
+              <label class="filter-option"><input type="checkbox" value="thoi-trang" class="cat-filter" /> Thời trang</label>
+              <label class="filter-option"><input type="checkbox" value="gia-dung"   class="cat-filter" /> Gia dụng</label>
+              <label class="filter-option"><input type="checkbox" value="sach"       class="cat-filter" /> Sách</label>
+              <label class="filter-option"><input type="checkbox" value="the-thao"   class="cat-filter" /> Thể thao</label>
+              <label class="filter-option"><input type="checkbox" value="lam-dep"    class="cat-filter" /> Làm đẹp</label>
+              <label class="filter-option"><input type="checkbox" value="thuc-pham"  class="cat-filter" /> Thực phẩm</label>
+            </div>
+
+            <!-- Price filter -->
+            <div class="filter-group">
+              <div class="filter-label">💰 Khoảng giá</div>
+              <div class="price-range">
+                <input type="number" id="priceMin" placeholder="₫ Từ" min="0" />
+                <span class="price-range-sep">—</span>
+                <input type="number" id="priceMax" placeholder="₫ Đến" min="0" />
+              </div>
+              <button class="filter-apply" onclick="applyFilters()">Áp dụng</button>
+            </div>
+
+            <!-- Rating filter -->
+            <div class="filter-group">
+              <div class="filter-label">⭐ Đánh giá</div>
+              <div class="rating-filter" data-rating="5" onclick="filterByRating(5)"><span class="stars">★★★★★</span> <span>5 sao</span></div>
+              <div class="rating-filter" data-rating="4" onclick="filterByRating(4)"><span class="stars">★★★★☆</span> <span>4 sao trở lên</span></div>
+              <div class="rating-filter" data-rating="3" onclick="filterByRating(3)"><span class="stars">★★★☆☆</span> <span>3 sao trở lên</span></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ── Products Content ─────────────── -->
+        <div>
+          <!-- Sort bar -->
+          <div class="sort-bar">
+            <span>Sắp xếp:</span>
+            <button class="sort-btn active" data-sort="popular" onclick="sortProducts('popular', this)">Phổ biến</button>
+            <button class="sort-btn" data-sort="newest" onclick="sortProducts('newest', this)">Mới nhất</button>
+            <button class="sort-btn" data-sort="price-asc" onclick="sortProducts('price-asc', this)">Giá thấp → cao</button>
+            <button class="sort-btn" data-sort="price-desc" onclick="sortProducts('price-desc', this)">Giá cao → thấp</button>
+          </div>
+
+          <!-- Results count -->
+          <div class="products-top">
+            <div class="results-count" id="resultsCount"></div>
+          </div>
+
+          <!-- Product grid -->
+          <div class="product-grid" id="productGrid"></div>
+
+          <!-- Pagination -->
+          <div class="pagination" id="pagination"></div>
+
+          <!-- Empty state -->
+          <div class="empty-state hidden" id="emptyState">
+            <div class="empty-icon">🔍</div>
+            <h4>Không tìm thấy sản phẩm</h4>
+            <p>Hãy thử tìm kiếm với từ khóa khác hoặc bỏ bớt bộ lọc</p>
+            <a href="products.html" class="btn btn-outline">Xem tất cả sản phẩm</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a>
+        <a href="#">Chính sách đổi trả</a>
+        <a href="#">Chính sách bảo hành</a>
+        <a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a>
+        <a href="#">Tuyển dụng</a>
+        <a href="#">Điều khoản dịch vụ</a>
+        <a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p>
+        <p>📞 1800 6789 (miễn phí)</p>
+        <p>🕐 Thứ 2 – CN: 8:00 – 22:00</p>
+        <p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Products Page Script
+  ============================================ */
+
+  /* ── Mock Data ───────────────────────────── */
+  const ALL_PRODUCTS = [
+    { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
+    { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
+    { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
+    { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
+    { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
+    { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
+    { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
+    { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
+    { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
+    { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
+    { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
+    { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
+    { id:13, name:'iPad Air M2 11 inch 128GB',    price:16990000, original:19990000, rating:4.8, sold:321,  cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
+    { id:14, name:'Bàn phím cơ Akko 3068B Plus',  price:1290000,  original:1690000,  rating:4.6, sold:876,  cat:'dien-tu',   icon:'⌨️', bg:'#F3E5F5'  },
+    { id:15, name:'Dép Adidas Adilette Comfort',  price:790000,   original:1100000,  rating:4.4, sold:2345, cat:'the-thao',  icon:'🩴', bg:'#E0F7FA'  },
+    { id:16, name:'Son môi MAC Powder Kiss',       price:480000,   original:650000,   rating:4.7, sold:3210, cat:'lam-dep',   icon:'💄', bg:'#FCE4EC'  },
+    { id:17, name:'Trà sữa Gong Cha hộp 6 gói',  price:89000,    original:120000,   rating:4.3, sold:8765, cat:'thuc-pham', icon:'🧋', bg:'#FFF8E1'  },
+    { id:18, name:'Máy hút bụi Dyson V15 Detect', price:14990000, original:18990000, rating:4.9, sold:234,  cat:'gia-dung',  icon:'🧹', bg:'#E8F5E9'  },
+  ];
+
+  const CAT_NAMES = {
+    'dien-tu':    'Điện tử',
+    'thoi-trang': 'Thời trang',
+    'gia-dung':   'Gia dụng',
+    'sach':       'Sách',
+    'the-thao':   'Thể thao',
+    'lam-dep':    'Làm đẹp',
+    'thuc-pham':  'Thực phẩm',
+  };
+
+  const PER_PAGE = 12;
+  let currentSort   = 'popular';
+  let currentPage    = 1;
+  let minRating      = 0;
+  let filteredProducts = [...ALL_PRODUCTS];
+
+  /* ── Read Query Params ──────────────────── */
+  const params = new URLSearchParams(location.search);
+  const queryCat  = params.get('cat');
+  const queryQ    = params.get('q');
+  const querySale = params.get('sale');
+
+  // Pre-check category in sidebar
+  if (queryCat) {
+    const cb = document.querySelector(`.cat-filter[value="${queryCat}"]`);
+    if (cb) cb.checked = true;
+    document.getElementById('breadcrumbCurrent').textContent = CAT_NAMES[queryCat] || 'Sản phẩm';
+    document.title = `${CAT_NAMES[queryCat] || 'Sản phẩm'} — ShopNest`;
+  }
+  // Pre-fill search
+  if (queryQ) {
+    document.getElementById('searchInput').value = queryQ;
+    document.getElementById('breadcrumbCurrent').textContent = `Kết quả: "${queryQ}"`;
+    document.title = `Tìm kiếm: ${queryQ} — ShopNest`;
+  }
+
+  /* ── Render Product Card ────────────────── */
+  function renderCard(p) {
+    const disc = calcDiscount(p.original, p.price);
+    return `
+    <div class="product-card"
+         onclick="location.href='product-detail.html?id=${p.id}'"
+         title="${p.name}">
+      <div class="product-img-wrap">
+        <div class="prod-img" style="background:${p.bg}">${p.icon}</div>
+        <span class="product-badge">-${disc}%</span>
+      </div>
+      <div class="product-info">
+        <h4 class="product-name">${p.name}</h4>
+        <div class="product-price">
+          <span class="price">${formatPrice(p.price)}</span>
+          <span class="original-price">${formatPrice(p.original)}</span>
+        </div>
+        <div class="product-meta">
+          <span class="rating">⭐ ${p.rating}</span>
+          <span class="sold">Đã bán ${p.sold > 999 ? (p.sold/1000).toFixed(1)+'k' : p.sold}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ── Filter & Render ────────────────────── */
+  function applyFilters() {
+    currentPage = 1;
+    let prods = [...ALL_PRODUCTS];
+
+    // Category filter
+    const checkedCats = [...document.querySelectorAll('.cat-filter:checked')].map(c => c.value);
+    if (checkedCats.length > 0) {
+      prods = prods.filter(p => checkedCats.includes(p.cat));
+    }
+
+    // Search query
+    if (queryQ) {
+      const q = queryQ.toLowerCase();
+      prods = prods.filter(p => p.name.toLowerCase().includes(q));
+    }
+
+    // Sale filter
+    if (querySale === 'true') {
+      prods = prods.filter(p => calcDiscount(p.original, p.price) >= 20);
+    }
+
+    // Price filter
+    const pMin = Number(document.getElementById('priceMin').value);
+    const pMax = Number(document.getElementById('priceMax').value);
+    if (pMin > 0) prods = prods.filter(p => p.price >= pMin);
+    if (pMax > 0) prods = prods.filter(p => p.price <= pMax);
+
+    // Rating filter
+    if (minRating > 0) prods = prods.filter(p => p.rating >= minRating);
+
+    filteredProducts = prods;
+    sortAndRender();
+  }
+
+  function sortProducts(sort, btn) {
+    currentSort = sort;
+    currentPage = 1;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    sortAndRender();
+  }
+
+  function sortAndRender() {
+    let prods = [...filteredProducts];
+
+    switch (currentSort) {
+      case 'popular':    prods.sort((a,b) => b.sold - a.sold); break;
+      case 'newest':     prods.sort((a,b) => b.id - a.id); break;
+      case 'price-asc':  prods.sort((a,b) => a.price - b.price); break;
+      case 'price-desc': prods.sort((a,b) => b.price - a.price); break;
+    }
+
+    // Pagination
+    const total = prods.length;
+    const pages = Math.ceil(total / PER_PAGE);
+    const start = (currentPage - 1) * PER_PAGE;
+    const pageProds = prods.slice(start, start + PER_PAGE);
+
+    // Render
+    const grid = document.getElementById('productGrid');
+    const empty = document.getElementById('emptyState');
+
+    if (pageProds.length === 0) {
+      grid.innerHTML = '';
+      grid.classList.add('hidden');
+      empty.classList.remove('hidden');
+    } else {
+      grid.classList.remove('hidden');
+      empty.classList.add('hidden');
+      grid.innerHTML = pageProds.map(p => renderCard(p)).join('');
+    }
+
+    // Results count
+    document.getElementById('resultsCount').textContent = `Hiển thị ${start+1}–${Math.min(start+PER_PAGE, total)} trên ${total} sản phẩm`;
+
+    // Pagination
+    renderPagination(pages);
+  }
+
+  function renderPagination(totalPages) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage-1})">‹</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage+1})">›</button>`;
+    el.innerHTML = html;
+  }
+
+  function goPage(p) {
+    currentPage = p;
+    sortAndRender();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function filterByRating(r) {
+    minRating = (minRating === r) ? 0 : r; // toggle
+    document.querySelectorAll('.rating-filter').forEach(el => {
+      el.style.background = (+el.dataset.rating === minRating) ? 'var(--primary-light)' : '';
+      el.style.borderRadius = 'var(--radius-sm)';
+    });
+    applyFilters();
+  }
+
+  /* ── Category checkbox change ───────────── */
+  document.querySelectorAll('.cat-filter').forEach(cb => {
+    cb.addEventListener('change', applyFilters);
+  });
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Navbar username ────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name.split(' ').pop();
+  }
+
+  /* ── Init ───────────────────────────────── */
+  applyFilters();
+  </script>
+</body>
+</html>

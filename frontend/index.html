@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopNest – Mua sắm thông minh</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <!-- Logo -->
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">
+          📦 <span>Đơn hàng</span>
+        </a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">
+          🛒 <span>Giỏ hàng</span>
+          <span class="cart-badge" style="display:none">0</span>
+        </a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html" data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html" data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html" data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category nav -->
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+
+    <!-- ── Banner ─────────────────────────── -->
+    <div class="container">
+      <div class="banner-wrap" id="bannerWrap">
+        <div class="banner-content">
+          <h2 id="bannerTitle">Mua sắm thông minh<br>cùng ShopNest 🏠</h2>
+          <p id="bannerDesc">Hàng nghìn sản phẩm chính hãng — Giao nhanh toàn quốc</p>
+          <a href="products.html" class="banner-btn" id="bannerBtn">Khám phá ngay →</a>
+        </div>
+        <div class="banner-deco" id="bannerEmoji">🛍️</div>
+        <div class="banner-dots">
+          <span class="dot active" data-idx="0"></span>
+          <span class="dot" data-idx="1"></span>
+          <span class="dot" data-idx="2"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Danh mục nổi bật ───────────────── -->
+    <div class="container section">
+      <div class="section-header">
+        <h3>Danh mục nổi bật</h3>
+        <a href="products.html">Xem tất cả →</a>
+      </div>
+      <div class="cat-grid">
+        <a href="products.html?cat=dien-tu" class="cat-card">
+          <div class="cat-icon">📱</div><span>Điện tử</span>
+        </a>
+        <a href="products.html?cat=thoi-trang" class="cat-card">
+          <div class="cat-icon">👗</div><span>Thời trang</span>
+        </a>
+        <a href="products.html?cat=gia-dung" class="cat-card">
+          <div class="cat-icon">🏠</div><span>Gia dụng</span>
+        </a>
+        <a href="products.html?cat=sach" class="cat-card">
+          <div class="cat-icon">📚</div><span>Sách</span>
+        </a>
+        <a href="products.html?cat=the-thao" class="cat-card">
+          <div class="cat-icon">⚽</div><span>Thể thao</span>
+        </a>
+        <a href="products.html?cat=lam-dep" class="cat-card">
+          <div class="cat-icon">💄</div><span>Làm đẹp</span>
+        </a>
+        <a href="products.html?cat=thuc-pham" class="cat-card">
+          <div class="cat-icon">🍎</div><span>Thực phẩm</span>
+        </a>
+        <a href="products.html" class="cat-card">
+          <div class="cat-icon">🛒</div><span>Tất cả</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Flash Sale ─────────────────────── -->
+    <div class="container section">
+      <div class="flash-header">
+        <span class="flash-title">⚡ Flash Sale</span>
+        <div class="countdown">
+          Kết thúc sau:
+          <span class="time-box" id="cdH">02</span>:
+          <span class="time-box" id="cdM">34</span>:
+          <span class="time-box" id="cdS">56</span>
+        </div>
+        <a href="products.html?sale=true" class="flash-all">Xem tất cả →</a>
+      </div>
+      <div class="product-grid flash-grid" id="flashGrid"></div>
+    </div>
+
+    <!-- ── Gợi ý hôm nay ─────────────────── -->
+    <div class="container section">
+      <div class="section-header">
+        <h3>Gợi ý hôm nay</h3>
+      </div>
+      <div class="product-grid" id="featuredGrid"></div>
+      <div class="text-center mt-24">
+        <a href="products.html" class="btn btn-outline">Xem thêm sản phẩm</a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a>
+        <a href="#">Chính sách đổi trả</a>
+        <a href="#">Chính sách bảo hành</a>
+        <a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a>
+        <a href="#">Tuyển dụng</a>
+        <a href="#">Điều khoản dịch vụ</a>
+        <a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 2221050163@student.humg.edu.vn</p>
+        <p>📞 0866870413</p>
+        <p>🕐 Thứ 2 – CN: 8:00 – 22:00</p>
+        <p>📍 Hà Nội, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+    /* ============================================
+       Homepage Script
+    ============================================ */
+
+    /* ── Mock Data ───────────────────────────── */
+    const PRODUCTS = [
+      { id: 1, name: 'iPhone 15 Pro Max 256GB', price: 29990000, original: 33990000, rating: 4.8, sold: 1243, cat: 'dien-tu', icon: '📱', bg: '#E8F4FD', flash: true },
+      { id: 2, name: 'Samsung Galaxy S24 Ultra', price: 24990000, original: 27990000, rating: 4.7, sold: 987, cat: 'dien-tu', icon: '📱', bg: '#EDE7F6', flash: true },
+      { id: 3, name: 'Áo thun nam Polo Premium', price: 299000, original: 450000, rating: 4.5, sold: 3421, cat: 'thoi-trang', icon: '👕', bg: '#FEF9EF', flash: true },
+      { id: 4, name: 'Tai nghe Sony WH-1000XM5', price: 6990000, original: 8990000, rating: 4.9, sold: 1543, cat: 'dien-tu', icon: '🎧', bg: '#FFF0F0', flash: true },
+      { id: 5, name: 'Nồi cơm điện Panasonic 1.8L', price: 890000, original: 1200000, rating: 4.9, sold: 756, cat: 'gia-dung', icon: '🍚', bg: '#FFF3E0', flash: false },
+      { id: 6, name: 'Bộ sách Đắc Nhân Tâm (Combo)', price: 85000, original: 120000, rating: 4.8, sold: 5632, cat: 'sach', icon: '📖', bg: '#F3E5F5', flash: false },
+      { id: 7, name: 'Giày thể thao Nike Air Max', price: 1890000, original: 2500000, rating: 4.7, sold: 1876, cat: 'the-thao', icon: '👟', bg: '#E8F5E9', flash: false },
+      { id: 8, name: 'Kem dưỡng da Innisfree 50ml', price: 220000, original: 320000, rating: 4.6, sold: 4231, cat: 'lam-dep', icon: '🧴', bg: '#FCE4EC', flash: false },
+      { id: 9, name: 'Laptop Asus VivoBook 15 2024', price: 13990000, original: 16990000, rating: 4.5, sold: 432, cat: 'dien-tu', icon: '💻', bg: '#E3F2FD', flash: false },
+      { id: 10, name: 'Quần jean nữ Skinny Hàn Quốc', price: 389000, original: 520000, rating: 4.6, sold: 2108, cat: 'thoi-trang', icon: '👖', bg: '#E0F7FA', flash: false },
+      { id: 11, name: 'Máy xay sinh tố Philips 750W', price: 1290000, original: 1890000, rating: 4.7, sold: 654, cat: 'gia-dung', icon: '🫙', bg: '#F1F8E9', flash: false },
+      { id: 12, name: 'Váy hoa nữ Hàn Quốc Summer', price: 459000, original: 650000, rating: 4.5, sold: 1876, cat: 'thoi-trang', icon: '👗', bg: '#FCEEF8', flash: false },
+    ];
+
+    /* ── Render Product Card ─────────────────── */
+    function renderCard(p, small = false) {
+      const disc = calcDiscount(p.original, p.price);
+      return `
+    <div class="product-card ${small ? 'flash-card' : ''}"
+         onclick="location.href='product-detail.html?id=${p.id}'"
+         title="${p.name}">
+      <div class="product-img-wrap">
+        <div class="prod-img" style="background:${p.bg}">${p.icon}</div>
+        <span class="product-badge ${small ? 'flash' : ''}">-${disc}%</span>
+      </div>
+      <div class="product-info">
+        <h4 class="product-name">${p.name}</h4>
+        <div class="product-price">
+          <span class="price">${formatPrice(p.price)}</span>
+          <span class="original-price">${formatPrice(p.original)}</span>
+        </div>
+        <div class="product-meta">
+          <span class="rating">⭐ ${p.rating}</span>
+          <span class="sold">Đã bán ${p.sold > 999 ? (p.sold / 1000).toFixed(1) + 'k' : p.sold}</span>
+        </div>
+      </div>
+    </div>`;
+    }
+
+    /* ── Flash Sale Grid ─────────────────────── */
+    const flashProds = PRODUCTS.filter(p => p.flash).slice(0, 6);
+    document.getElementById('flashGrid').innerHTML = flashProds.map(p => renderCard(p, true)).join('');
+
+    /* ── Featured Grid ───────────────────────── */
+    document.getElementById('featuredGrid').innerHTML = PRODUCTS.map(p => renderCard(p)).join('');
+
+    /* ── Countdown Timer ─────────────────────── */
+    let endTime = Date.now() + 2 * 3600000 + 34 * 60000 + 56000;
+    function updateCountdown() {
+      const diff = Math.max(0, endTime - Date.now());
+      const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      document.getElementById('cdH').textContent = h;
+      document.getElementById('cdM').textContent = m;
+      document.getElementById('cdS').textContent = s;
+      if (diff === 0) endTime = Date.now() + 2 * 3600000; // reset
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    /* ── Banner Slider ───────────────────────── */
+    const banners = [
+      { title: 'Mua sắm thông minh<br>cùng ShopNest 🏠', desc: 'Hàng nghìn sản phẩm chính hãng — Giao nhanh toàn quốc', emoji: '🛍️', link: 'products.html', btn: 'Khám phá ngay →', bg: 'linear-gradient(135deg,#EE4D2D,#FF8C42)' },
+      { title: 'Flash Sale mỗi ngày<br>Giảm đến 50% ⚡', desc: 'Sản phẩm điện tử, thời trang, gia dụng giá sốc', emoji: '⚡', link: 'products.html?sale=true', btn: 'Săn deal ngay →', bg: 'linear-gradient(135deg,#7B2FF7,#C062E8)' },
+      { title: 'Giao hàng siêu tốc<br>Trong 2 giờ 🚀', desc: 'Đặt trước 10h — nhận hàng buổi trưa cùng ngày', emoji: '🚚', link: 'products.html', btn: 'Đặt hàng ngay →', bg: 'linear-gradient(135deg,#0F766E,#14B8A6)' },
+    ];
+    let curBanner = 0;
+    function showBanner(i) {
+      const b = banners[i];
+      document.getElementById('bannerWrap').style.background = b.bg;
+      document.getElementById('bannerTitle').innerHTML = b.title;
+      document.getElementById('bannerDesc').textContent = b.desc;
+      document.getElementById('bannerEmoji').textContent = b.emoji;
+      document.getElementById('bannerBtn').href = b.link;
+      document.getElementById('bannerBtn').textContent = b.btn;
+      document.querySelectorAll('.dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+    }
+    document.querySelectorAll('.dot').forEach(d => {
+      d.addEventListener('click', () => { curBanner = +d.dataset.idx; showBanner(curBanner); });
+    });
+    setInterval(() => { curBanner = (curBanner + 1) % banners.length; showBanner(curBanner); }, 4000);
+
+    /* ── Search ──────────────────────────────── */
+    function doSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+    }
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doSearch();
+    });
+
+    /* ── Navbar username ─────────────────────── */
+    const user = Auth.getUser();
+    if (user) {
+      const el = document.getElementById('navUserName');
+      if (el) el.textContent = user.name.split(' ').pop();
+    }
+  </script>
+</body>
+
+</html>

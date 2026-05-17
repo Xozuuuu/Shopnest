@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chi tiết sản phẩm — ShopNest</title>
+  <meta name="description" content="Xem chi tiết sản phẩm trên ShopNest — Giá tốt nhất, giao hàng nhanh, chính hãng 100%." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Product Detail specific ──────────── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-img {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 140px;
+      border: 1px solid var(--border);
+    }
+
+    .detail-info { display: flex; flex-direction: column; gap: 14px; }
+    .detail-name { font-size: 22px; font-weight: 700; line-height: 1.4; }
+    .detail-rating { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .detail-rating .stars { color: #facc15; font-size: 18px; letter-spacing: 1px; }
+    .detail-rating .num { color: var(--primary); font-weight: 700; }
+    .detail-rating .sold-text { color: var(--text-muted); }
+    .detail-rating .sep { color: var(--border); }
+
+    .detail-price-box {
+      background: var(--primary-light);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .detail-price { font-size: 28px; font-weight: 800; color: var(--primary); }
+    .detail-original { font-size: 16px; color: var(--text-muted); text-decoration: line-through; }
+    .detail-discount {
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .detail-row { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-secondary); }
+    .detail-row .label { min-width: 80px; color: var(--text-muted); }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .qty-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      background: var(--bg-page);
+      transition: background var(--transition);
+    }
+    .qty-btn:hover { background: var(--border); }
+    .qty-input {
+      width: 50px;
+      height: 36px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .detail-actions { display: flex; gap: 10px; margin-top: 6px; }
+    .detail-actions .btn { flex: 1; }
+
+    .detail-features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+    @media (max-width: 640px) { .detail-features { grid-template-columns: 1fr; } }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 10px;
+      background: var(--bg-page);
+      border-radius: var(--radius-md);
+    }
+    .feature-item .fi-icon { font-size: 18px; }
+
+    /* Tabs */
+    .tab-nav {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 16px;
+      gap: 0;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Description */
+    .desc-text { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+    .desc-text h4 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 16px 0 8px; }
+    .desc-text ul { padding-left: 20px; list-style: disc; }
+    .desc-text ul li { margin-bottom: 6px; }
+
+    /* Reviews */
+    .review-item {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .review-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .review-name { font-size: 14px; font-weight: 600; }
+    .review-date { font-size: 12px; color: var(--text-muted); }
+    .review-stars { color: #facc15; font-size: 13px; letter-spacing: 1px; margin-bottom: 6px; }
+    .review-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html"    data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html"  data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html"   data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+    <div class="container section">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <a href="products.html" id="breadcrumbCat">Sản phẩm</a>
+        <span class="breadcrumb-sep">›</span>
+        <span id="breadcrumbName">Chi tiết</span>
+      </div>
+
+      <!-- Detail Grid -->
+      <div class="detail-grid">
+        <!-- Image -->
+        <div class="detail-img card" id="productImg" style="background:#E8F4FD">📱</div>
+
+        <!-- Info -->
+        <div class="detail-info">
+          <h1 class="detail-name" id="productName">Đang tải...</h1>
+
+          <div class="detail-rating">
+            <span class="stars" id="productStars">★★★★★</span>
+            <span class="num" id="productRating">5.0</span>
+            <span class="sep">|</span>
+            <span class="sold-text" id="productSold">Đã bán 0</span>
+          </div>
+
+          <div class="detail-price-box">
+            <span class="detail-price" id="productPrice">₫0</span>
+            <span class="detail-original" id="productOriginal">₫0</span>
+            <span class="detail-discount" id="productDiscount">-0%</span>
+          </div>
+
+          <div class="detail-features">
+            <div class="feature-item"><span class="fi-icon">✅</span> Chính hãng 100%</div>
+            <div class="feature-item"><span class="fi-icon">🚚</span> Giao hàng miễn phí</div>
+            <div class="feature-item"><span class="fi-icon">🔄</span> Đổi trả 30 ngày</div>
+          </div>
+
+          <div class="detail-row">
+            <span class="label">Số lượng</span>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input type="number" class="qty-input" id="qtyInput" value="1" min="1" max="99" />
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+            <span style="font-size:12px;color:var(--text-muted);" id="stockText">Còn hàng</span>
+          </div>
+
+          <div class="detail-actions">
+            <button class="btn btn-outline btn-lg" onclick="addToCart()">🛒 Thêm vào giỏ</button>
+            <button class="btn btn-primary btn-lg" onclick="buyNow()">Mua ngay</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs: Description & Reviews -->
+      <div class="card">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('desc', this)">📋 Mô tả sản phẩm</button>
+          <button class="tab-btn" onclick="switchTab('reviews', this)">⭐ Đánh giá (<span id="reviewCount">0</span>)</button>
+        </div>
+        <div class="card-body">
+          <!-- Description Tab -->
+          <div class="tab-content active" id="tab-desc">
+            <div class="desc-text" id="descContent"></div>
+          </div>
+
+          <!-- Reviews Tab -->
+          <div class="tab-content" id="tab-reviews">
+            <div id="reviewsList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      <div class="section">
+        <div class="section-header">
+          <h3>Sản phẩm tương tự</h3>
+          <a href="products.html">Xem tất cả →</a>
+        </div>
+        <div class="product-grid" id="relatedGrid"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a><a href="#">Tuyển dụng</a><a href="#">Điều khoản dịch vụ</a><a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p><p>📞 1800 6789 (miễn phí)</p><p>🕐 Thứ 2 – CN: 8:00 – 22:00</p><p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Product Detail Script
+  ============================================ */
+
+  /* ── Mock Data ───────────────────────────── */
+  const ALL_PRODUCTS = [
+    { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
+    { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
+    { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
+    { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
+    { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
+    { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
+    { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
+    { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
+    { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
+    { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
+    { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
+    { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
+  ];
+
+  const CAT_NAMES = {
+    'dien-tu':'Điện tử','thoi-trang':'Thời trang','gia-dung':'Gia dụng',
+    'sach':'Sách','the-thao':'Thể thao','lam-dep':'Làm đẹp','thuc-pham':'Thực phẩm',
+  };
+
+  const MOCK_REVIEWS = [
+    { name:'Nguyễn Văn An',  avatar:'👨', rating:5, date:'15/05/2024', text:'Sản phẩm rất tốt, đúng mô tả. Giao hàng nhanh, đóng gói cẩn thận. Rất hài lòng!' },
+    { name:'Trần Thị Bích',  avatar:'👩', rating:4, date:'12/05/2024', text:'Chất lượng ổn so với giá tiền. Ship nhanh, hàng nguyên seal. Sẽ ủng hộ shop lần sau.' },
+    { name:'Phạm Minh Đức',  avatar:'👨', rating:5, date:'08/05/2024', text:'Mua lần thứ 2 rồi. Sản phẩm chính hãng, giá tốt hơn nhiều nơi khác. Recommend!' },
+    { name:'Lê Thùy Linh',   avatar:'👩', rating:4, date:'01/05/2024', text:'Hàng đẹp, màu sắc đúng hình. Chỉ hơi lâu giao hàng nhưng chấp nhận được.' },
+  ];
+
+  /* ── Get Product ────────────────────────── */
+  const productId = Number(new URLSearchParams(location.search).get('id')) || 1;
+  const product = ALL_PRODUCTS.find(p => p.id === productId) || ALL_PRODUCTS[0];
+
+  /* ── Render Product Info ────────────────── */
+  document.title = `${product.name} — ShopNest`;
+  document.getElementById('productName').textContent    = product.name;
+  document.getElementById('productImg').style.background = product.bg;
+  document.getElementById('productImg').textContent      = product.icon;
+  document.getElementById('productPrice').textContent    = formatPrice(product.price);
+  document.getElementById('productOriginal').textContent = formatPrice(product.original);
+  document.getElementById('productDiscount').textContent = `-${calcDiscount(product.original, product.price)}%`;
+  document.getElementById('productRating').textContent   = product.rating;
+  document.getElementById('productStars').textContent    = renderStars(product.rating);
+  document.getElementById('productSold').textContent     = `Đã bán ${product.sold > 999 ? (product.sold/1000).toFixed(1)+'k' : product.sold}`;
+  document.getElementById('breadcrumbCat').textContent   = CAT_NAMES[product.cat] || 'Sản phẩm';
+  document.getElementById('breadcrumbCat').href          = `products.html?cat=${product.cat}`;
+  document.getElementById('breadcrumbName').textContent  = product.name;
+
+  /* ── Description ────────────────────────── */
+  document.getElementById('descContent').innerHTML = `
+    <h4>Mô tả sản phẩm</h4>
+    <p>${product.name} — sản phẩm chất lượng cao thuộc danh mục <strong>${CAT_NAMES[product.cat]}</strong>. 
+    Được hàng nghìn khách hàng tin tưởng lựa chọn trên ShopNest.</p>
+    <h4>Đặc điểm nổi bật</h4>
+    <ul>
+      <li>Sản phẩm chính hãng 100%, cam kết chất lượng</li>
+      <li>Bảo hành chính hãng 12 tháng tại trung tâm bảo hành toàn quốc</li>
+      <li>Miễn phí giao hàng cho đơn từ ₫300.000</li>
+      <li>Đổi trả dễ dàng trong vòng 30 ngày</li>
+      <li>Hỗ trợ kỹ thuật 24/7 qua hotline 1800 6789</li>
+    </ul>
+    <h4>Thông số kỹ thuật</h4>
+    <ul>
+      <li>Thương hiệu: ${product.name.split(' ')[0]}</li>
+      <li>Danh mục: ${CAT_NAMES[product.cat]}</li>
+      <li>Xuất xứ: Chính hãng</li>
+      <li>Kho hàng: TP. Hồ Chí Minh</li>
+      <li>Gửi từ: Việt Nam</li>
+    </ul>
+  `;
+
+  /* ── Reviews ────────────────────────────── */
+  document.getElementById('reviewCount').textContent = MOCK_REVIEWS.length;
+  document.getElementById('reviewsList').innerHTML = MOCK_REVIEWS.map(r => `
+    <div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar">${r.avatar}</div>
+        <div>
+          <div class="review-name">${r.name}</div>
+          <div class="review-date">${r.date}</div>
+        </div>
+      </div>
+      <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+      <div class="review-text">${r.text}</div>
+    </div>
+  `).join('');
+
+  /* ── Related Products ───────────────────── */
+  const related = ALL_PRODUCTS.filter(p => p.cat === product.cat && p.id !== product.id).slice(0, 6);
+  document.getElementById('relatedGrid').innerHTML = related.map(p => `
+    <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'" title="${p.name}">
+      <div class="product-img-wrap">
+        <div class="prod-img" style="background:${p.bg}">${p.icon}</div>
+        <span class="product-badge">-${calcDiscount(p.original, p.price)}%</span>
+      </div>
+      <div class="product-info">
+        <h4 class="product-name">${p.name}</h4>
+        <div class="product-price">
+          <span class="price">${formatPrice(p.price)}</span>
+          <span class="original-price">${formatPrice(p.original)}</span>
+        </div>
+        <div class="product-meta">
+          <span class="rating">⭐ ${p.rating}</span>
+          <span class="sold">Đã bán ${p.sold > 999 ? (p.sold/1000).toFixed(1)+'k' : p.sold}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  /* ── Quantity Control ───────────────────── */
+  function changeQty(delta) {
+    const inp = document.getElementById('qtyInput');
+    const val = Math.max(1, Math.min(99, Number(inp.value) + delta));
+    inp.value = val;
+  }
+
+  /* ── Add to Cart ────────────────────────── */
+  function addToCart() {
+    const qty = Number(document.getElementById('qtyInput').value);
+    CartLocal.add(product, qty);
+    showToast(`Đã thêm ${qty} sản phẩm vào giỏ hàng 🛒`, 'success');
+  }
+
+  function buyNow() {
+    const qty = Number(document.getElementById('qtyInput').value);
+    CartLocal.add(product, qty);
+    location.href = 'cart.html';
+  }
+
+  /* ── Tabs ───────────────────────────────── */
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Navbar username ────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name.split(' ').pop();
+  }
+  </script>
+</body>
+</html>

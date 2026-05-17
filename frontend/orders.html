@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đơn hàng của tôi — ShopNest</title>
+  <meta name="description" content="Theo dõi đơn hàng của bạn trên ShopNest — Cập nhật trạng thái giao hàng liên tục." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Orders page specific ─────────────── */
+    .order-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .order-tabs::-webkit-scrollbar { display: none; }
+    .order-tab {
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+    }
+    .order-tab:hover { color: var(--primary); }
+    .order-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .order-tab .tab-count {
+      background: var(--bg-page);
+      padding: 1px 7px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+    .order-tab.active .tab-count { background: var(--primary-light); color: var(--primary); }
+
+    .order-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-xs);
+    }
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-page);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .order-id { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .order-date { font-size: 12px; color: var(--text-muted); }
+    .order-card-body { padding: 0 16px; }
+
+    .order-product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-product:last-child { border-bottom: none; }
+    .order-product-img {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .order-product-info { flex: 1; min-width: 0; }
+    .order-product-name {
+      font-size: 14px;
+      font-weight: 500;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .order-product-qty { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .order-product-price { font-size: 14px; font-weight: 700; color: var(--primary); white-space: nowrap; }
+
+    .order-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .order-total-label { font-size: 13px; color: var(--text-muted); }
+    .order-total-value { font-size: 18px; font-weight: 800; color: var(--primary); }
+    .order-footer-actions { display: flex; gap: 8px; }
+
+    .order-detail-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 4px 16px;
+    }
+    .order-detail-row .odr-label { color: var(--text-muted); min-width: 100px; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html"    data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html"  data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html"   data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+    <div class="container section">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Đơn hàng của tôi</span>
+      </div>
+
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:16px;">📦 Đơn hàng của tôi</h1>
+
+      <!-- Tabs -->
+      <div class="order-tabs">
+        <button class="order-tab active" data-filter="all" onclick="filterOrders('all', this)">
+          Tất cả <span class="tab-count" id="countAll">0</span>
+        </button>
+        <button class="order-tab" data-filter="pending" onclick="filterOrders('pending', this)">
+          Chờ xác nhận <span class="tab-count" id="countPending">0</span>
+        </button>
+        <button class="order-tab" data-filter="shipping" onclick="filterOrders('shipping', this)">
+          Đang giao <span class="tab-count" id="countShipping">0</span>
+        </button>
+        <button class="order-tab" data-filter="delivered" onclick="filterOrders('delivered', this)">
+          Đã giao <span class="tab-count" id="countDelivered">0</span>
+        </button>
+        <button class="order-tab" data-filter="cancelled" onclick="filterOrders('cancelled', this)">
+          Đã hủy <span class="tab-count" id="countCancelled">0</span>
+        </button>
+      </div>
+
+      <!-- Orders List -->
+      <div id="ordersList"></div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyOrders">
+        <div class="empty-icon">📦</div>
+        <h4>Chưa có đơn hàng nào</h4>
+        <p>Hãy khám phá các sản phẩm tuyệt vời trên ShopNest</p>
+        <a href="products.html" class="btn btn-primary">Mua sắm ngay</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a><a href="#">Tuyển dụng</a><a href="#">Điều khoản dịch vụ</a><a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p><p>📞 1800 6789 (miễn phí)</p><p>🕐 Thứ 2 – CN: 8:00 – 22:00</p><p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Orders Page Script
+  ============================================ */
+
+  const STATUS_MAP = {
+    pending:    { label: 'Chờ xác nhận', badge: 'badge-warning',  icon: '⏳' },
+    confirmed:  { label: 'Đã xác nhận',  badge: 'badge-info',     icon: '✅' },
+    shipping:   { label: 'Đang giao',     badge: 'badge-info',     icon: '🚚' },
+    delivered:  { label: 'Đã giao',       badge: 'badge-success',  icon: '📦' },
+    cancelled:  { label: 'Đã hủy',        badge: 'badge-danger',   icon: '❌' },
+  };
+
+  let currentFilter = 'all';
+
+  /* ── Seed Demo Orders if empty ──────────── */
+  function seedDemoOrders() {
+    const existing = JSON.parse(localStorage.getItem('sn_orders') || '[]');
+    if (existing.length > 0) return existing;
+
+    const demo = [
+      {
+        id: 'SN2405A1', date: '15/05/2024', status: 'delivered',
+        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
+        payment: 'Thanh toán khi nhận hàng',
+        items: [
+          { id:1, name:'iPhone 15 Pro Max 256GB', price:29990000, quantity:1, icon:'📱', bg:'#E8F4FD' },
+          { id:4, name:'Tai nghe Sony WH-1000XM5', price:6990000, quantity:1, icon:'🎧', bg:'#FFF0F0' },
+        ],
+        subtotal: 36980000, shipping: 0, total: 36980000,
+      },
+      {
+        id: 'SN2405B2', date: '10/05/2024', status: 'shipping',
+        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
+        payment: 'Chuyển khoản ngân hàng',
+        items: [
+          { id:3, name:'Áo thun nam Polo Premium', price:299000, quantity:2, icon:'👕', bg:'#FEF9EF' },
+        ],
+        subtotal: 598000, shipping: 0, total: 598000,
+      },
+      {
+        id: 'SN2405C3', date: '05/05/2024', status: 'cancelled',
+        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
+        payment: 'Ví điện tử',
+        items: [
+          { id:6, name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000, quantity:3, icon:'📖', bg:'#F3E5F5' },
+        ],
+        subtotal: 255000, shipping: 30000, total: 285000,
+      },
+    ];
+    localStorage.setItem('sn_orders', JSON.stringify(demo));
+    return demo;
+  }
+
+  /* ── Render Orders ──────────────────────── */
+  function renderOrders() {
+    let orders = seedDemoOrders();
+    // Re-read in case of updates
+    orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
+
+    // Counts
+    const counts = { all: orders.length, pending: 0, shipping: 0, delivered: 0, cancelled: 0 };
+    orders.forEach(o => { if (counts[o.status] !== undefined) counts[o.status]++; });
+    document.getElementById('countAll').textContent       = counts.all;
+    document.getElementById('countPending').textContent    = counts.pending;
+    document.getElementById('countShipping').textContent   = counts.shipping;
+    document.getElementById('countDelivered').textContent  = counts.delivered;
+    document.getElementById('countCancelled').textContent  = counts.cancelled;
+
+    // Filter
+    const filtered = currentFilter === 'all' ? orders : orders.filter(o => o.status === currentFilter);
+
+    const listEl = document.getElementById('ordersList');
+    const emptyEl = document.getElementById('emptyOrders');
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    emptyEl.classList.add('hidden');
+
+    listEl.innerHTML = filtered.map(order => {
+      const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
+      const itemsHtml = order.items.map(item => `
+        <div class="order-product">
+          <div class="order-product-img" style="background:${item.bg || '#F5F5F5'}">${item.icon || '📦'}</div>
+          <div class="order-product-info">
+            <div class="order-product-name">${item.name}</div>
+            <div class="order-product-qty">SL: ${item.quantity}</div>
+          </div>
+          <div class="order-product-price">${formatPrice(item.price * item.quantity)}</div>
+        </div>
+      `).join('');
+
+      const canCancel = order.status === 'pending';
+
+      return `
+        <div class="order-card">
+          <div class="order-card-header">
+            <div>
+              <span class="order-id">Đơn hàng #${order.id}</span>
+              <span class="order-date" style="margin-left:10px;">${order.date}</span>
+            </div>
+            <span class="badge ${st.badge}">${st.icon} ${st.label}</span>
+          </div>
+          <div class="order-detail-row" style="padding-top:10px;">
+            <span class="odr-label">Người nhận:</span>
+            <span>${order.name} • ${order.phone}</span>
+          </div>
+          <div class="order-detail-row">
+            <span class="odr-label">Địa chỉ:</span>
+            <span>${order.address}</span>
+          </div>
+          <div class="order-detail-row" style="padding-bottom:4px;">
+            <span class="odr-label">Thanh toán:</span>
+            <span>${order.payment}</span>
+          </div>
+          <div class="order-card-body">${itemsHtml}</div>
+          <div class="order-card-footer">
+            <div>
+              <span class="order-total-label">Tổng đơn hàng: </span>
+              <span class="order-total-value">${formatPrice(order.total)}</span>
+            </div>
+            <div class="order-footer-actions">
+              ${canCancel ? `<button class="btn btn-sm" style="color:#e53e3e;border:1px solid #e53e3e;" onclick="cancelOrder('${order.id}')">Hủy đơn</button>` : ''}
+              ${order.status === 'delivered' ? `<button class="btn btn-sm btn-primary" onclick="showToast('Cảm ơn bạn đã đánh giá!','success')">⭐ Đánh giá</button>` : ''}
+              <button class="btn btn-sm btn-outline" onclick="reorder('${order.id}')">🔄 Mua lại</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ── Filter ─────────────────────────────── */
+  function filterOrders(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderOrders();
+  }
+
+  /* ── Cancel Order ───────────────────────── */
+  function cancelOrder(id) {
+    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
+    const order = orders.find(o => o.id === id);
+    if (order && order.status === 'pending') {
+      order.status = 'cancelled';
+      localStorage.setItem('sn_orders', JSON.stringify(orders));
+      showToast('Đã hủy đơn hàng #' + id, 'info');
+      renderOrders();
+    }
+  }
+
+  /* ── Reorder ────────────────────────────── */
+  function reorder(id) {
+    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
+    const order = orders.find(o => o.id === id);
+    if (order) {
+      order.items.forEach(item => CartLocal.add(item, item.quantity));
+      showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+    }
+  }
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Navbar username ────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name.split(' ').pop();
+  }
+
+  /* ── Init ───────────────────────────────── */
+  renderOrders();
+  </script>
+</body>
+</html>

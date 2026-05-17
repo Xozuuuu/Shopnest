@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — ShopNest Admin</title>
+  <meta name="description" content="Bảng điều khiển quản trị ShopNest — Theo dõi doanh thu, đơn hàng và sản phẩm." />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    /* ── Dashboard specific ───────────────── */
+    .chart-placeholder {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .chart-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mini bar chart mock */
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 120px;
+      padding: 10px 0;
+    }
+
+    .mini-bar {
+      flex: 1;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      transition: all .3s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .mini-bar:hover {
+      opacity: .8;
+    }
+
+    .mini-bar-label {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .mini-bar-val {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      display: none;
+    }
+
+    .mini-bar:hover .mini-bar-val {
+      display: block;
+    }
+
+    /* Recent orders table */
+    .recent-table td {
+      font-size: 13px;
+    }
+
+    .recent-table .order-id-link {
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .recent-table .order-id-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Top products */
+    .top-product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .top-product:last-child {
+      border-bottom: none;
+    }
+
+    .top-product-rank {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .top-product-rank.gold {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .top-product-rank.silver {
+      background: #E5E7EB;
+      color: #374151;
+    }
+
+    .top-product-rank.bronze {
+      background: #FED7AA;
+      color: #9A3412;
+    }
+
+    .top-product-rank.normal {
+      background: var(--bg-page);
+      color: var(--text-muted);
+    }
+
+    .top-product-img {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .top-product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .top-product-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .top-product-sold {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .top-product-revenue {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    /* Quick actions */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .quick-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 16px;
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+
+    .quick-action:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .quick-action .qa-icon {
+      font-size: 24px;
+    }
+
+    .quick-action .qa-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN NAVBAR                 ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm trong admin..." autocomplete="off" />
+        <button class="search-btn">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-btn" style="cursor:default;">
+          <span class="badge badge-primary" style="font-size:12px;">👑 Admin</span>
+        </span>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Admin</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="../index.html">🏠 Về trang chủ</a>
+            <a href="../profile.html">👤 Hồ sơ cá nhân</a>
+            <a href="../login.html" id="logoutBtn" class="divider">🚪 Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN LAYOUT                 ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <a href="dashboard.html" class="admin-menu-item active">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="products.html" class="admin-menu-item">
+        <span>📦</span> Sản phẩm
+      </a>
+      <a href="orders.html" class="admin-menu-item">
+        <span>🛒</span> Đơn hàng
+      </a>
+      <a href="users.html" class="admin-menu-item">
+        <span>👥</span> Người dùng
+      </a>
+      <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+      <a href="../login.html" class="admin-menu-item">
+        <span>🏠</span> Về trang chủ
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <h1 class="admin-page-title">📊 Dashboard</h1>
+
+      <!-- Stat Cards -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-icon orange">💰</div>
+          <div>
+            <div class="stat-value" id="statRevenue">₫245.8M</div>
+            <div class="stat-label">Doanh thu tháng này</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">🛒</div>
+          <div>
+            <div class="stat-value" id="statOrders">1,247</div>
+            <div class="stat-label">Đơn hàng</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📦</div>
+          <div>
+            <div class="stat-value" id="statProducts">386</div>
+            <div class="stat-label">Sản phẩm</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">👥</div>
+          <div>
+            <div class="stat-value" id="statUsers">5,832</div>
+            <div class="stat-label">Người dùng</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a href="products.html" class="quick-action">
+          <span class="qa-icon">➕</span>
+          <span class="qa-label">Thêm sản phẩm</span>
+        </a>
+        <a href="orders.html" class="quick-action">
+          <span class="qa-icon">📋</span>
+          <span class="qa-label">Xử lý đơn hàng</span>
+        </a>
+        <a href="users.html" class="quick-action">
+          <span class="qa-icon">👥</span>
+          <span class="qa-label">Quản lý user</span>
+        </a>
+        <a href="../index.html" class="quick-action">
+          <span class="qa-icon">🌐</span>
+          <span class="qa-label">Xem trang chủ</span>
+        </a>
+      </div>
+
+      <!-- Charts & Tables -->
+      <div class="dashboard-grid">
+
+        <!-- Revenue Chart (Mock bar chart) -->
+        <div class="chart-placeholder">
+          <div class="chart-title">📈 Doanh thu 7 ngày gần nhất</div>
+          <div class="mini-chart" id="revenueChart"></div>
+          <div style="height:20px;"></div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="chart-placeholder">
+          <div class="chart-title">🏆 Sản phẩm bán chạy</div>
+          <div id="topProducts"></div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="chart-placeholder" style="grid-column: 1 / -1;">
+          <div class="chart-title" style="justify-content:space-between;">
+            <span>🕐 Đơn hàng gần đây</span>
+            <a href="orders.html" style="font-size:13px;color:var(--primary);font-weight:500;">Xem tất cả →</a>
+          </div>
+          <div class="table-wrap">
+            <table class="table recent-table">
+              <thead>
+                <tr>
+                  <th>Mã đơn</th>
+                  <th>Khách hàng</th>
+                  <th>Sản phẩm</th>
+                  <th>Tổng tiền</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày đặt</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    /* ============================================
+       Admin Dashboard Script
+    ============================================ */
+
+    /* ── Mock Data ───────────────────────────── */
+    const MOCK_REVENUE = [
+      { day: '11/05', value: 32500000 },
+      { day: '12/05', value: 45200000 },
+      { day: '13/05', value: 28700000 },
+      { day: '14/05', value: 51300000 },
+      { day: '15/05', value: 39800000 },
+      { day: '16/05', value: 62100000 },
+      { day: '17/05', value: 48300000 },
+    ];
+
+    const MOCK_TOP_PRODUCTS = [
+      { name: 'iPhone 15 Pro Max 256GB', icon: '📱', bg: '#E8F4FD', sold: 1243, revenue: 37257570000 },
+      { name: 'Bộ sách Đắc Nhân Tâm', icon: '📖', bg: '#F3E5F5', sold: 5632, revenue: 478720000 },
+      { name: 'Kem dưỡng da Innisfree', icon: '🧴', bg: '#FCE4EC', sold: 4231, revenue: 930820000 },
+      { name: 'Áo thun nam Polo Premium', icon: '👕', bg: '#FEF9EF', sold: 3421, revenue: 1022919000 },
+      { name: 'Quần jean nữ Skinny', icon: '👖', bg: '#E0F7FA', sold: 2108, revenue: 820012000 },
+    ];
+
+    const MOCK_RECENT_ORDERS = [
+      { id: 'SN2405F1', customer: 'Trần Minh Tuấn', items: 2, total: 36980000, status: 'pending', date: '17/05/2024' },
+      { id: 'SN2405F2', customer: 'Nguyễn Thị Lan', items: 1, total: 6990000, status: 'confirmed', date: '17/05/2024' },
+      { id: 'SN2405F3', customer: 'Phạm Văn Đức', items: 3, total: 598000, status: 'shipping', date: '16/05/2024' },
+      { id: 'SN2405F4', customer: 'Lê Hoàng Nam', items: 1, total: 29990000, status: 'delivered', date: '16/05/2024' },
+      { id: 'SN2405F5', customer: 'Đỗ Thu Hà', items: 2, total: 1290000, status: 'pending', date: '15/05/2024' },
+      { id: 'SN2405F6', customer: 'Vũ Quang Huy', items: 4, total: 2580000, status: 'cancelled', date: '15/05/2024' },
+      { id: 'SN2405F7', customer: 'Hoàng Thị Mai', items: 1, total: 890000, status: 'delivered', date: '14/05/2024' },
+      { id: 'SN2405F8', customer: 'Bùi Thanh Tùng', items: 2, total: 14990000, status: 'shipping', date: '14/05/2024' },
+    ];
+
+    const STATUS_MAP = {
+      pending: { label: 'Chờ xác nhận', badge: 'badge-warning' },
+      confirmed: { label: 'Đã xác nhận', badge: 'badge-info' },
+      shipping: { label: 'Đang giao', badge: 'badge-info' },
+      delivered: { label: 'Đã giao', badge: 'badge-success' },
+      cancelled: { label: 'Đã hủy', badge: 'badge-danger' },
+    };
+
+    /* ── Revenue Chart ──────────────────────── */
+    const maxRev = Math.max(...MOCK_REVENUE.map(r => r.value));
+    const colors = ['#FF6B35', '#EE4D2D', '#FF8C42', '#7B2FF7', '#14B8A6', '#EE4D2D', '#FF6B35'];
+    document.getElementById('revenueChart').innerHTML = MOCK_REVENUE.map((r, i) => {
+      const h = Math.max(10, (r.value / maxRev) * 100);
+      return `
+      <div class="mini-bar" style="height:${h}%;background:${colors[i]};">
+        <span class="mini-bar-val">${(r.value / 1e6).toFixed(0)}M</span>
+        <span class="mini-bar-label">${r.day}</span>
+      </div>`;
+    }).join('');
+
+    /* ── Top Products ───────────────────────── */
+    const rankClasses = ['gold', 'silver', 'bronze', 'normal', 'normal'];
+    document.getElementById('topProducts').innerHTML = MOCK_TOP_PRODUCTS.map((p, i) => `
+    <div class="top-product">
+      <div class="top-product-rank ${rankClasses[i]}">${i + 1}</div>
+      <div class="top-product-img" style="background:${p.bg}">${p.icon}</div>
+      <div class="top-product-info">
+        <div class="top-product-name">${p.name}</div>
+        <div class="top-product-sold">Đã bán ${p.sold.toLocaleString()}</div>
+      </div>
+      <div class="top-product-revenue">${formatPrice(p.revenue)}</div>
+    </div>
+  `).join('');
+
+    /* ── Recent Orders ──────────────────────── */
+    document.getElementById('recentOrdersBody').innerHTML = MOCK_RECENT_ORDERS.map(o => {
+      const st = STATUS_MAP[o.status];
+      return `
+      <tr>
+        <td><span class="order-id-link">${o.id}</span></td>
+        <td>${o.customer}</td>
+        <td>${o.items} sản phẩm</td>
+        <td style="font-weight:700;color:var(--primary);">${formatPrice(o.total)}</td>
+        <td><span class="badge ${st.badge}">${st.label}</span></td>
+        <td style="color:var(--text-muted);">${o.date}</td>
+      </tr>`;
+    }).join('');
+
+    /* ── Navbar ─────────────────────────────── */
+    const user = Auth.getUser();
+    if (user) {
+      const el = document.getElementById('navUserName');
+      if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
+    }
+  </script>
+</body>
+
+</html>

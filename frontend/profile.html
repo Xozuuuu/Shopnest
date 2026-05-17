@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hồ sơ cá nhân — ShopNest</title>
+  <meta name="description" content="Quản lý hồ sơ cá nhân, cập nhật thông tin và đổi mật khẩu trên ShopNest." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Profile page specific ────────────── */
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .profile-layout { grid-template-columns: 1fr; } }
+
+    .profile-sidebar {
+      position: sticky;
+      top: calc(var(--navbar-h) + 16px);
+    }
+
+    .profile-avatar-box {
+      text-align: center;
+      padding: 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 10px;
+      border: 3px solid var(--primary);
+    }
+    .profile-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+    .profile-email { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    .profile-menu {
+      padding: 8px 0;
+    }
+    .profile-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      border-left: 3px solid transparent;
+    }
+    .profile-menu-item:hover { background: var(--primary-light); color: var(--primary); }
+    .profile-menu-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-left-color: var(--primary);
+      font-weight: 600;
+    }
+    .profile-menu-item .pm-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Tab content */
+    .profile-tab { display: none; }
+    .profile-tab.active { display: block; }
+
+    .profile-field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 640px) { .profile-field-row { grid-template-columns: 1fr; } }
+
+    .profile-info-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--bg-page);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+    }
+    .profile-info-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      flex-shrink: 0;
+      border: 2px solid var(--primary);
+    }
+    .profile-info-text h3 { font-size: 18px; font-weight: 700; }
+    .profile-info-text p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 640px) { .profile-stats { grid-template-columns: 1fr; } }
+    .profile-stat {
+      text-align: center;
+      padding: 16px;
+      background: var(--bg-page);
+      border-radius: var(--radius-md);
+    }
+    .profile-stat .ps-value { font-size: 22px; font-weight: 800; color: var(--primary); }
+    .profile-stat .ps-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html"    data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html"  data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html"   data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+    <div class="container section">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Hồ sơ cá nhân</span>
+      </div>
+
+      <div class="profile-layout">
+
+        <!-- ── Sidebar ──────────────────────── -->
+        <div class="card profile-sidebar">
+          <div class="profile-avatar-box">
+            <div class="profile-avatar" id="sidebarAvatar">👤</div>
+            <div class="profile-name" id="sidebarName">Người dùng</div>
+            <div class="profile-email" id="sidebarEmail">user@email.com</div>
+          </div>
+          <div class="profile-menu">
+            <div class="profile-menu-item active" onclick="switchProfileTab('info', this)">
+              <span class="pm-icon">👤</span> Hồ sơ của tôi
+            </div>
+            <div class="profile-menu-item" onclick="switchProfileTab('password', this)">
+              <span class="pm-icon">🔒</span> Đổi mật khẩu
+            </div>
+            <div class="profile-menu-item" onclick="location.href='orders.html'">
+              <span class="pm-icon">📦</span> Đơn hàng của tôi
+            </div>
+            <div class="profile-menu-item" style="border-top:1px solid var(--border);margin-top:4px;padding-top:14px;" onclick="doLogout()">
+              <span class="pm-icon">🚪</span> Đăng xuất
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Content ──────────────────────── -->
+        <div>
+          <!-- Tab: Profile Info -->
+          <div class="profile-tab active" id="tab-info">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">👤 Hồ sơ của tôi</span>
+              </div>
+              <div class="card-body">
+
+                <!-- User info summary -->
+                <div class="profile-info-box">
+                  <div class="profile-info-avatar" id="profileAvatar">👤</div>
+                  <div class="profile-info-text">
+                    <h3 id="profileGreeting">Xin chào!</h3>
+                    <p>Quản lý thông tin cá nhân để bảo mật tài khoản</p>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="profile-stats">
+                  <div class="profile-stat">
+                    <div class="ps-value" id="statOrders">0</div>
+                    <div class="ps-label">Đơn hàng</div>
+                  </div>
+                  <div class="profile-stat">
+                    <div class="ps-value" id="statCart">0</div>
+                    <div class="ps-label">SP trong giỏ</div>
+                  </div>
+                  <div class="profile-stat">
+                    <div class="ps-value" id="statJoined">—</div>
+                    <div class="ps-label">Ngày tham gia</div>
+                  </div>
+                </div>
+
+                <!-- Edit form -->
+                <form id="profileForm" novalidate>
+                  <div class="profile-field-row">
+                    <div class="form-group">
+                      <label class="form-label" for="pfName">Họ và tên</label>
+                      <input class="form-control" type="text" id="pfName" placeholder="Nguyễn Văn A" />
+                      <div class="form-error" id="pfNameError"></div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="pfEmail">Email</label>
+                      <input class="form-control" type="email" id="pfEmail" placeholder="you@example.com" />
+                      <div class="form-error" id="pfEmailError"></div>
+                    </div>
+                  </div>
+                  <div class="profile-field-row">
+                    <div class="form-group">
+                      <label class="form-label" for="pfPhone">Số điện thoại</label>
+                      <input class="form-control" type="tel" id="pfPhone" placeholder="0901234567" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="pfAddress">Địa chỉ</label>
+                      <input class="form-control" type="text" id="pfAddress" placeholder="TP. Hồ Chí Minh" />
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+                    <button type="button" class="btn btn-outline" onclick="loadProfile()">Hủy thay đổi</button>
+                    <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
+                  </div>
+                </form>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab: Change Password -->
+          <div class="profile-tab" id="tab-password">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">🔒 Đổi mật khẩu</span>
+              </div>
+              <div class="card-body">
+                <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;">
+                  Để bảo mật tài khoản, vui lòng không chia sẻ mật khẩu cho người khác.
+                </p>
+                <form id="passwordForm" novalidate style="max-width:440px;">
+                  <div class="form-group">
+                    <label class="form-label" for="pwOld">Mật khẩu hiện tại</label>
+                    <div class="input-group">
+                      <input class="form-control" type="password" id="pwOld" placeholder="Nhập mật khẩu hiện tại" />
+                      <button type="button" class="toggle-pw" onclick="togglePwField('pwOld', this)">👁️</button>
+                    </div>
+                    <div class="form-error" id="pwOldError"></div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pwNew">Mật khẩu mới</label>
+                    <div class="input-group">
+                      <input class="form-control" type="password" id="pwNew" placeholder="Tối thiểu 6 ký tự" />
+                      <button type="button" class="toggle-pw" onclick="togglePwField('pwNew', this)">👁️</button>
+                    </div>
+                    <div class="form-error" id="pwNewError"></div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pwConfirm">Xác nhận mật khẩu mới</label>
+                    <div class="input-group">
+                      <input class="form-control" type="password" id="pwConfirm" placeholder="Nhập lại mật khẩu mới" />
+                      <button type="button" class="toggle-pw" onclick="togglePwField('pwConfirm', this)">👁️</button>
+                    </div>
+                    <div class="form-error" id="pwConfirmError"></div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">🔒 Cập nhật mật khẩu</button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a><a href="#">Tuyển dụng</a><a href="#">Điều khoản dịch vụ</a><a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p><p>📞 1800 6789 (miễn phí)</p><p>🕐 Thứ 2 – CN: 8:00 – 22:00</p><p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Profile Page Script
+  ============================================ */
+
+  /* ── Require Login ──────────────────────── */
+  if (!Auth.isLoggedIn()) {
+    location.href = 'login.html';
+  }
+
+  const user = Auth.getUser() || {};
+
+  /* ── Load Profile ───────────────────────── */
+  function loadProfile() {
+    document.getElementById('sidebarAvatar').textContent  = user.avatar || '👤';
+    document.getElementById('sidebarName').textContent    = user.name || 'Người dùng';
+    document.getElementById('sidebarEmail').textContent   = user.email || '';
+    document.getElementById('profileAvatar').textContent  = user.avatar || '👤';
+    document.getElementById('profileGreeting').textContent = `Xin chào, ${user.name || 'bạn'}! 👋`;
+
+    document.getElementById('pfName').value    = user.name    || '';
+    document.getElementById('pfEmail').value   = user.email   || '';
+    document.getElementById('pfPhone').value   = user.phone   || '';
+    document.getElementById('pfAddress').value = user.address || '';
+
+    // Stats
+    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
+    document.getElementById('statOrders').textContent = orders.length;
+    document.getElementById('statCart').textContent    = CartLocal.count();
+
+    if (user.createdAt) {
+      const d = new Date(user.createdAt);
+      document.getElementById('statJoined').textContent = d.toLocaleDateString('vi-VN');
+    }
+
+    // Navbar
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = (user.name || '').split(' ').pop();
+  }
+
+  /* ── Switch Tab ─────────────────────────── */
+  function switchProfileTab(tab, btn) {
+    document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.profile-menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  /* ── Save Profile ───────────────────────── */
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Clear errors
+    document.getElementById('pfNameError').textContent  = '';
+    document.getElementById('pfEmailError').textContent = '';
+    document.getElementById('pfName').classList.remove('error');
+    document.getElementById('pfEmail').classList.remove('error');
+
+    const name    = document.getElementById('pfName').value.trim();
+    const email   = document.getElementById('pfEmail').value.trim();
+    const phone   = document.getElementById('pfPhone').value.trim();
+    const address = document.getElementById('pfAddress').value.trim();
+    let valid = true;
+
+    if (!name) {
+      document.getElementById('pfNameError').textContent = 'Vui lòng nhập họ tên';
+      document.getElementById('pfName').classList.add('error');
+      valid = false;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      document.getElementById('pfEmailError').textContent = 'Email không hợp lệ';
+      document.getElementById('pfEmail').classList.add('error');
+      valid = false;
+    }
+    if (!valid) return;
+
+    // Update user in localStorage
+    const updated = { ...user, name, email, phone, address };
+    Auth.save(Auth.getToken(), updated);
+    Object.assign(user, updated);
+
+    showToast('Cập nhật hồ sơ thành công! ✅', 'success');
+    loadProfile();
+  });
+
+  /* ── Change Password ────────────────────── */
+  document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    ['pwOldError','pwNewError','pwConfirmError'].forEach(id => document.getElementById(id).textContent = '');
+    ['pwOld','pwNew','pwConfirm'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+    const oldPw    = document.getElementById('pwOld').value;
+    const newPw    = document.getElementById('pwNew').value;
+    const confirmPw = document.getElementById('pwConfirm').value;
+    let valid = true;
+
+    if (!oldPw) {
+      document.getElementById('pwOldError').textContent = 'Vui lòng nhập mật khẩu hiện tại';
+      document.getElementById('pwOld').classList.add('error');
+      valid = false;
+    }
+    if (!newPw) {
+      document.getElementById('pwNewError').textContent = 'Vui lòng nhập mật khẩu mới';
+      document.getElementById('pwNew').classList.add('error');
+      valid = false;
+    } else if (newPw.length < 6) {
+      document.getElementById('pwNewError').textContent = 'Mật khẩu cần ít nhất 6 ký tự';
+      document.getElementById('pwNew').classList.add('error');
+      valid = false;
+    }
+    if (newPw !== confirmPw) {
+      document.getElementById('pwConfirmError').textContent = 'Mật khẩu xác nhận không khớp';
+      document.getElementById('pwConfirm').classList.add('error');
+      valid = false;
+    }
+    if (!valid) return;
+
+    // Mock password change
+    await new Promise(r => setTimeout(r, 500));
+    showToast('Đổi mật khẩu thành công! 🔒', 'success');
+    document.getElementById('passwordForm').reset();
+  });
+
+  /* ── Toggle Password ────────────────────── */
+  function togglePwField(fieldId, btn) {
+    const inp = document.getElementById(fieldId);
+    const isPassword = inp.type === 'password';
+    inp.type = isPassword ? 'text' : 'password';
+    btn.textContent = isPassword ? '🙈' : '👁️';
+  }
+
+  /* ── Logout ─────────────────────────────── */
+  function doLogout() {
+    Auth.clear();
+    CartLocal.clear();
+    showToast('Đăng xuất thành công!', 'info');
+    setTimeout(() => location.href = 'index.html', 600);
+  }
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Init ───────────────────────────────── */
+  loadProfile();
+  </script>
+</body>
+</html>

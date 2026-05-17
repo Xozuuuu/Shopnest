@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý sản phẩm — ShopNest Admin</title>
+  <meta name="description" content="Quản lý danh sách sản phẩm trên ShopNest — Thêm, sửa, xóa sản phẩm." />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    /* ── Products Admin specific ──────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .toolbar-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .toolbar-search input {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      outline: none;
+    }
+    .toolbar-search input:focus { border-color: var(--primary); }
+    .toolbar-actions { display: flex; gap: 8px; }
+
+    .product-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .product-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .product-cell-name { font-weight: 600; font-size: 13px; }
+    .product-cell-cat  { font-size: 11px; color: var(--text-muted); }
+
+    .action-btns { display: flex; gap: 4px; }
+    .action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+    }
+    .action-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .action-btn.danger:hover { border-color: #e53e3e; background: #FEE2E2; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all .25s;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--bg-white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform .25s;
+    }
+    .modal-overlay.active .modal { transform: translateY(0); }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .modal-close:hover { background: var(--bg-page); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .cat-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--bg-white);
+      outline: none;
+      cursor: pointer;
+    }
+    .cat-select:focus { border-color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN NAVBAR                 ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" placeholder="Tìm kiếm trong admin..." autocomplete="off" />
+        <button class="search-btn">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-btn" style="cursor:default;">
+          <span class="badge badge-primary" style="font-size:12px;">👑 Admin</span>
+        </span>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Admin</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="../index.html">🏠 Về trang chủ</a>
+            <a href="../profile.html">👤 Hồ sơ cá nhân</a>
+            <a href="#" id="logoutBtn" class="divider">🚪 Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN LAYOUT                 ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <a href="dashboard.html" class="admin-menu-item"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="admin-menu-item active"><span>📦</span> Sản phẩm</a>
+      <a href="orders.html" class="admin-menu-item"><span>🛒</span> Đơn hàng</a>
+      <a href="users.html" class="admin-menu-item"><span>👥</span> Người dùng</a>
+      <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+      <a href="../index.html" class="admin-menu-item"><span>🏠</span> Về trang chủ</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <h1 class="admin-page-title">📦 Quản lý sản phẩm</h1>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-search">
+          <input type="text" id="productSearch" placeholder="🔍 Tìm sản phẩm..." oninput="filterProducts()" />
+          <select class="cat-select" id="catFilter" onchange="filterProducts()" style="max-width:160px;">
+            <option value="">Tất cả danh mục</option>
+            <option value="dien-tu">📱 Điện tử</option>
+            <option value="thoi-trang">👗 Thời trang</option>
+            <option value="gia-dung">🏠 Gia dụng</option>
+            <option value="sach">📚 Sách</option>
+            <option value="the-thao">⚽ Thể thao</option>
+            <option value="lam-dep">💄 Làm đẹp</option>
+            <option value="thuc-pham">🍎 Thực phẩm</option>
+          </select>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="openModal()">➕ Thêm sản phẩm</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="stat-icon orange">📦</div>
+          <div>
+            <div class="stat-value" id="totalProducts">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <div class="stat-value" id="activeProducts">0</div>
+            <div class="stat-label">Đang bán</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">🏷️</div>
+          <div>
+            <div class="stat-value" id="categoryCount">7</div>
+            <div class="stat-label">Danh mục</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Danh sách sản phẩm</span>
+          <span style="font-size:13px;color:var(--text-muted);" id="showingCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Sản phẩm</th>
+                <th>Giá bán</th>
+                <th>Giá gốc</th>
+                <th>Đánh giá</th>
+                <th>Đã bán</th>
+                <th>Danh mục</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          PRODUCT MODAL                ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Thêm sản phẩm</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="productForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="mName">Tên sản phẩm *</label>
+            <input class="form-control" type="text" id="mName" placeholder="iPhone 15 Pro Max..." />
+            <div class="form-error" id="mNameError"></div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="mPrice">Giá bán (₫) *</label>
+              <input class="form-control" type="number" id="mPrice" placeholder="29990000" min="0" />
+              <div class="form-error" id="mPriceError"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mOriginal">Giá gốc (₫) *</label>
+              <input class="form-control" type="number" id="mOriginal" placeholder="33990000" min="0" />
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="mCat">Danh mục *</label>
+              <select class="cat-select" id="mCat">
+                <option value="">Chọn danh mục</option>
+                <option value="dien-tu">📱 Điện tử</option>
+                <option value="thoi-trang">👗 Thời trang</option>
+                <option value="gia-dung">🏠 Gia dụng</option>
+                <option value="sach">📚 Sách</option>
+                <option value="the-thao">⚽ Thể thao</option>
+                <option value="lam-dep">💄 Làm đẹp</option>
+                <option value="thuc-pham">🍎 Thực phẩm</option>
+              </select>
+              <div class="form-error" id="mCatError"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mIcon">Icon sản phẩm</label>
+              <input class="form-control" type="text" id="mIcon" placeholder="📱" maxlength="4" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mBg">Màu nền (hex)</label>
+            <input class="form-control" type="text" id="mBg" placeholder="#E8F4FD" value="#E8F4FD" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Hủy</button>
+        <button class="btn btn-primary btn-sm" id="modalSaveBtn" onclick="saveProduct()">💾 Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+  /* ============================================
+     Admin Products Script
+  ============================================ */
+
+  const CAT_NAMES = {
+    'dien-tu':'Điện tử','thoi-trang':'Thời trang','gia-dung':'Gia dụng',
+    'sach':'Sách','the-thao':'Thể thao','lam-dep':'Làm đẹp','thuc-pham':'Thực phẩm',
+  };
+  const CAT_ICONS = {
+    'dien-tu':'📱','thoi-trang':'👗','gia-dung':'🏠',
+    'sach':'📚','the-thao':'⚽','lam-dep':'💄','thuc-pham':'🍎',
+  };
+
+  /* ── Products Store ─────────────────────── */
+  const STORAGE_KEY = 'sn_admin_products';
+
+  function getProducts() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+
+    // Seed default
+    const defaults = [
+      { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
+      { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
+      { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
+      { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
+      { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
+      { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
+      { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
+      { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
+      { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
+      { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
+      { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
+      { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
+      { id:13, name:'iPad Air M2 11 inch 128GB',    price:16990000, original:19990000, rating:4.8, sold:321,  cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
+      { id:14, name:'Bàn phím cơ Akko 3068B Plus',  price:1290000,  original:1690000,  rating:4.6, sold:876,  cat:'dien-tu',   icon:'⌨️', bg:'#F3E5F5'  },
+      { id:15, name:'Son môi MAC Powder Kiss',       price:480000,   original:650000,   rating:4.7, sold:3210, cat:'lam-dep',   icon:'💄', bg:'#FCE4EC'  },
+    ];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+    return defaults;
+  }
+
+  function saveProducts(prods) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(prods));
+  }
+
+  const PER_PAGE = 10;
+  let currentPage = 1;
+  let editingId = null;
+
+  /* ── Render ─────────────────────────────── */
+  function renderProducts() {
+    let prods = getProducts();
+
+    // Filter by search
+    const q = document.getElementById('productSearch').value.trim().toLowerCase();
+    if (q) prods = prods.filter(p => p.name.toLowerCase().includes(q));
+
+    // Filter by category
+    const cat = document.getElementById('catFilter').value;
+    if (cat) prods = prods.filter(p => p.cat === cat);
+
+    // Stats
+    const all = getProducts();
+    document.getElementById('totalProducts').textContent = all.length;
+    document.getElementById('activeProducts').textContent = all.length;
+    document.getElementById('showingCount').textContent = `Hiển thị ${prods.length} sản phẩm`;
+
+    // Pagination
+    const totalPages = Math.ceil(prods.length / PER_PAGE);
+    const start = (currentPage - 1) * PER_PAGE;
+    const pageProds = prods.slice(start, start + PER_PAGE);
+
+    // Render table
+    document.getElementById('productsTableBody').innerHTML = pageProds.map(p => `
+      <tr>
+        <td style="color:var(--text-muted);font-weight:600;">#${p.id}</td>
+        <td>
+          <div class="product-cell">
+            <div class="product-thumb" style="background:${p.bg}">${p.icon}</div>
+            <div>
+              <div class="product-cell-name">${p.name}</div>
+              <div class="product-cell-cat">${CAT_ICONS[p.cat] || ''} ${CAT_NAMES[p.cat] || p.cat}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-weight:700;color:var(--primary);">${formatPrice(p.price)}</td>
+        <td style="color:var(--text-muted);text-decoration:line-through;">${formatPrice(p.original)}</td>
+        <td>⭐ ${p.rating}</td>
+        <td>${p.sold.toLocaleString()}</td>
+        <td><span class="badge badge-primary">${CAT_NAMES[p.cat] || p.cat}</span></td>
+        <td>
+          <div class="action-btns">
+            <button class="action-btn" onclick="editProduct(${p.id})" title="Sửa">✏️</button>
+            <button class="action-btn danger" onclick="deleteProduct(${p.id})" title="Xóa">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    // Pagination
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    let html = `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage-1})">‹</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage+1})">›</button>`;
+    el.innerHTML = html;
+  }
+
+  function goPage(p) { currentPage = p; renderProducts(); }
+  function filterProducts() { currentPage = 1; renderProducts(); }
+
+  /* ── Modal ──────────────────────────────── */
+  function openModal(id = null) {
+    editingId = id;
+    const modal = document.getElementById('productModal');
+    const form  = document.getElementById('productForm');
+    form.reset();
+    document.querySelectorAll('.form-error').forEach(e => e.textContent = '');
+
+    if (id) {
+      const p = getProducts().find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('modalTitle').textContent = '✏️ Sửa sản phẩm';
+      document.getElementById('mName').value     = p.name;
+      document.getElementById('mPrice').value    = p.price;
+      document.getElementById('mOriginal').value = p.original;
+      document.getElementById('mCat').value      = p.cat;
+      document.getElementById('mIcon').value     = p.icon;
+      document.getElementById('mBg').value       = p.bg;
+    } else {
+      document.getElementById('modalTitle').textContent = '➕ Thêm sản phẩm mới';
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('productModal').classList.remove('active');
+    editingId = null;
+  }
+
+  function editProduct(id) { openModal(id); }
+
+  /* ── Save ───────────────────────────────── */
+  function saveProduct() {
+    // Clear errors
+    ['mNameError','mPriceError','mCatError'].forEach(id => document.getElementById(id).textContent = '');
+
+    const name     = document.getElementById('mName').value.trim();
+    const price    = Number(document.getElementById('mPrice').value);
+    const original = Number(document.getElementById('mOriginal').value) || price * 1.2;
+    const cat      = document.getElementById('mCat').value;
+    const icon     = document.getElementById('mIcon').value.trim() || CAT_ICONS[cat] || '📦';
+    const bg       = document.getElementById('mBg').value.trim() || '#F5F5F5';
+    let valid = true;
+
+    if (!name) { document.getElementById('mNameError').textContent = 'Vui lòng nhập tên sản phẩm'; valid = false; }
+    if (!price || price <= 0) { document.getElementById('mPriceError').textContent = 'Giá phải lớn hơn 0'; valid = false; }
+    if (!cat) { document.getElementById('mCatError').textContent = 'Vui lòng chọn danh mục'; valid = false; }
+    if (!valid) return;
+
+    const prods = getProducts();
+
+    if (editingId) {
+      const idx = prods.findIndex(p => p.id === editingId);
+      if (idx >= 0) {
+        prods[idx] = { ...prods[idx], name, price, original, cat, icon, bg };
+        showToast('Cập nhật sản phẩm thành công! ✅', 'success');
+      }
+    } else {
+      const newId = Math.max(0, ...prods.map(p => p.id)) + 1;
+      prods.push({ id: newId, name, price, original, rating: 0, sold: 0, cat, icon, bg });
+      showToast('Thêm sản phẩm thành công! 🎉', 'success');
+    }
+
+    saveProducts(prods);
+    closeModal();
+    renderProducts();
+  }
+
+  /* ── Delete ─────────────────────────────── */
+  function deleteProduct(id) {
+    const prods = getProducts();
+    const p = prods.find(x => x.id === id);
+    if (!p) return;
+    if (!confirm(`Xóa sản phẩm "${p.name}"?`)) return;
+
+    const updated = prods.filter(x => x.id !== id);
+    saveProducts(updated);
+    showToast('Đã xóa sản phẩm', 'info');
+    renderProducts();
+  }
+
+  /* ── Close modal on overlay click ──────── */
+  document.getElementById('productModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  /* ── Navbar ─────────────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
+  }
+
+  /* ── Init ───────────────────────────────── */
+  renderProducts();
+  </script>
+</body>
+</html>

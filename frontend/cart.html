@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giỏ hàng — ShopNest</title>
+  <meta name="description" content="Xem giỏ hàng của bạn trên ShopNest và tiến hành thanh toán." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Cart page specific ───────────────── */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .cart-layout { grid-template-columns: 1fr; } }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 640px) {
+      .cart-item {
+        grid-template-columns: 60px 1fr;
+        gap: 10px;
+      }
+      .cart-item-price, .cart-item-subtotal { display: none; }
+    }
+    .cart-item:last-child { border-bottom: none; }
+
+    .cart-item-img {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      .cart-item-img { width: 60px; height: 60px; font-size: 28px; }
+    }
+
+    .cart-item-info { min-width: 0; }
+    .cart-item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .cart-item-cat { font-size: 12px; color: var(--text-muted); }
+    .cart-item-price-mobile {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 4px;
+      display: none;
+    }
+    @media (max-width: 640px) { .cart-item-price-mobile { display: block; } }
+
+    .cart-item-price { font-size: 14px; font-weight: 600; color: var(--primary); white-space: nowrap; }
+    .cart-item-subtotal { font-size: 14px; font-weight: 700; color: var(--primary); white-space: nowrap; }
+
+    .cart-remove {
+      padding: 6px;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      transition: color var(--transition);
+      border-radius: var(--radius-sm);
+    }
+    .cart-remove:hover { color: #e53e3e; background: #FEE2E2; }
+
+    /* Summary */
+    .cart-summary { position: sticky; top: calc(var(--navbar-h) + 16px); }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+    }
+    .summary-row.total {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+      border-top: 2px solid var(--border);
+      padding-top: 14px;
+      margin-top: 8px;
+    }
+    .free-ship-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #065F46;
+      background: #D1FAE5;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+    }
+
+    /* Qty control small */
+    .qty-sm {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .qty-sm button {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--bg-page);
+      transition: background var(--transition);
+    }
+    .qty-sm button:hover { background: var(--border); }
+    .qty-sm input {
+      width: 36px;
+      height: 28px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .cart-actions-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║             NAVBAR                    ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html"    data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html"  data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html"   data-show="user">Đơn hàng của tôi</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              MAIN                     ║
+       ╚══════════════════════════════════════╝ -->
+  <main>
+    <div class="container section">
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Giỏ hàng</span>
+      </div>
+
+      <h1 style="font-size:22px;font-weight:700;margin-bottom:16px;">🛒 Giỏ hàng của bạn</h1>
+
+      <!-- Cart Content -->
+      <div id="cartContent">
+        <div class="cart-layout">
+          <!-- Items -->
+          <div class="card">
+            <div class="card-body" id="cartItems"></div>
+            <div class="card-body cart-actions-bottom" id="cartActionsBottom">
+              <button class="btn btn-sm" style="color:var(--text-muted);border:1px solid var(--border);" onclick="clearCart()">🗑️ Xóa tất cả</button>
+              <a href="products.html" class="btn btn-sm btn-outline">← Tiếp tục mua sắm</a>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="card cart-summary">
+            <div class="card-header">
+              <span class="card-title">Tóm tắt đơn hàng</span>
+            </div>
+            <div class="card-body">
+              <div class="free-ship-note">🚚 Miễn phí giao hàng cho đơn từ ₫300.000</div>
+              <div class="summary-row">
+                <span>Tạm tính (<span id="sumCount">0</span> sản phẩm)</span>
+                <span id="sumSubtotal">₫0</span>
+              </div>
+              <div class="summary-row">
+                <span>Phí vận chuyển</span>
+                <span id="sumShipping">₫0</span>
+              </div>
+              <div class="summary-row">
+                <span>Giảm giá</span>
+                <span style="color:#065F46" id="sumDiscount">-₫0</span>
+              </div>
+              <div class="summary-row total">
+                <span>Tổng cộng</span>
+                <span id="sumTotal">₫0</span>
+              </div>
+              <button class="btn btn-primary btn-block btn-lg mt-16" onclick="goCheckout()">Tiến hành thanh toán</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyCart">
+        <div class="empty-icon">🛒</div>
+        <h4>Giỏ hàng trống</h4>
+        <p>Bạn chưa thêm sản phẩm nào vào giỏ hàng</p>
+        <a href="products.html" class="btn btn-primary">Khám phá sản phẩm</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║              FOOTER                   ║
+       ╚══════════════════════════════════════╝ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a><a href="#">Tuyển dụng</a><a href="#">Điều khoản dịch vụ</a><a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p><p>📞 1800 6789 (miễn phí)</p><p>🕐 Thứ 2 – CN: 8:00 – 22:00</p><p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Cart Page Script
+  ============================================ */
+
+  function renderCart() {
+    const cart = CartLocal.get();
+    const content = document.getElementById('cartContent');
+    const empty   = document.getElementById('emptyCart');
+
+    if (cart.length === 0) {
+      content.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    content.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    // Render items
+    const itemsHtml = cart.map(item => `
+      <div class="cart-item" data-id="${item.id}">
+        <div class="cart-item-img" style="background:${item.bg || '#F5F5F5'}">${item.icon || '📦'}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-cat">${item.cat || ''}</div>
+          <div class="cart-item-price-mobile">${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(item.price * item.quantity)}</div>
+        </div>
+        <div class="cart-item-price">${formatPrice(item.price)}</div>
+        <div class="qty-sm">
+          <button onclick="updateQty(${item.id}, -1)">−</button>
+          <input type="number" value="${item.quantity}" min="1" max="99"
+                 onchange="setQty(${item.id}, this.value)" />
+          <button onclick="updateQty(${item.id}, 1)">+</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="cart-item-subtotal">${formatPrice(item.price * item.quantity)}</span>
+          <button class="cart-remove" onclick="removeItem(${item.id})" title="Xóa">✕</button>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('cartItems').innerHTML = itemsHtml;
+
+    // Summary
+    const subtotal = CartLocal.total();
+    const count    = CartLocal.count();
+    const shipping = subtotal >= 300000 ? 0 : 30000;
+    const discount = 0;
+    const total    = subtotal + shipping - discount;
+
+    document.getElementById('sumCount').textContent    = count;
+    document.getElementById('sumSubtotal').textContent = formatPrice(subtotal);
+    document.getElementById('sumShipping').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
+    document.getElementById('sumDiscount').textContent = `-${formatPrice(discount)}`;
+    document.getElementById('sumTotal').textContent    = formatPrice(total);
+  }
+
+  function updateQty(id, delta) {
+    const cart = CartLocal.get();
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+    const newQty = Math.max(1, Math.min(99, item.quantity + delta));
+    CartLocal.update(id, newQty);
+    renderCart();
+  }
+
+  function setQty(id, val) {
+    const qty = Math.max(1, Math.min(99, Number(val)));
+    CartLocal.update(id, qty);
+    renderCart();
+  }
+
+  function removeItem(id) {
+    CartLocal.remove(id);
+    showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'info');
+    renderCart();
+  }
+
+  function clearCart() {
+    if (CartLocal.count() === 0) return;
+    CartLocal.clear();
+    showToast('Đã xóa toàn bộ giỏ hàng', 'info');
+    renderCart();
+  }
+
+  function goCheckout() {
+    if (CartLocal.count() === 0) {
+      showToast('Giỏ hàng trống!', 'error');
+      return;
+    }
+    location.href = 'checkout.html';
+  }
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Navbar username ────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name.split(' ').pop();
+  }
+
+  /* ── Init ───────────────────────────────── */
+  renderCart();
+  </script>
+</body>
+</html>
