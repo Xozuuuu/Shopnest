@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — ShopNest</title>
+  <meta name="description" content="Đăng nhập quản trị viên ShopNest." />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .admin-login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-login-page::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(238,77,45,0.15) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+      border-radius: 50%;
+    }
+    .admin-login-page::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(123,47,247,0.12) 0%, transparent 70%);
+      bottom: -80px;
+      left: -80px;
+      border-radius: 50%;
+    }
+    .admin-login-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+    }
+    .admin-login-card .auth-logo a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .admin-login-card .auth-logo span {
+      color: #EE4D2D;
+    }
+    .admin-login-card .auth-title {
+      color: #fff;
+      margin-top: 24px;
+      font-size: 26px;
+    }
+    .admin-login-card .auth-sub {
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 28px;
+    }
+    .admin-login-card .form-label {
+      color: rgba(255,255,255,0.8);
+    }
+    .admin-login-card .form-control {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+    .admin-login-card .form-control::placeholder {
+      color: rgba(255,255,255,0.35);
+    }
+    .admin-login-card .form-control:focus {
+      border-color: #EE4D2D;
+      background: rgba(255,255,255,0.12);
+    }
+    .admin-login-card .toggle-pw {
+      color: rgba(255,255,255,0.5);
+    }
+    .admin-login-card .form-error {
+      color: #FF6B6B;
+    }
+    .admin-login-card .btn-primary {
+      background: linear-gradient(135deg, #EE4D2D, #FF6B42);
+      border: none;
+      font-size: 16px;
+      padding: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.3s;
+    }
+    .admin-login-card .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(238,77,45,0.4);
+    }
+    .admin-badge-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(238,77,45,0.2), rgba(255,107,66,0.15));
+      border: 1px solid rgba(238,77,45,0.3);
+      color: #FF8C5A;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .admin-login-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: rgba(255,255,255,0.4);
+      font-size: 13px;
+    }
+    .admin-login-footer a {
+      color: #EE4D2D;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .admin-login-footer a:hover {
+      text-decoration: underline;
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-login-page">
+    <div class="admin-login-card">
+
+      <div class="auth-logo" style="text-align:center;">
+        <a href="../index.html">🏠 Shop<span>Nest</span></a>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <span class="admin-badge-title">👑 Quản trị viên</span>
+      </div>
+
+      <h1 class="auth-title" style="text-align:center;">Đăng nhập Admin</h1>
+      <p class="auth-sub" style="text-align:center;">Truy cập bảng điều khiển quản trị</p>
+
+      <form id="adminLoginForm" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="adminEmail">Email quản trị</label>
+          <input class="form-control" type="email" id="adminEmail" placeholder="admin@shopnest.vn" autocomplete="email" />
+          <div class="form-error" id="emailError"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="adminPassword">Mật khẩu</label>
+          <div class="input-group">
+            <input class="form-control" type="password" id="adminPassword" placeholder="Nhập mật khẩu admin" autocomplete="current-password" />
+            <button type="button" class="toggle-pw" id="togglePw" title="Hiển thị mật khẩu">👁️</button>
+          </div>
+          <div class="form-error" id="pwError"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="adminLoginBtn">
+          🔐 Đăng nhập Admin
+        </button>
+      </form>
+
+      <div class="admin-login-footer">
+        <a href="../login.html">← Về trang đăng nhập người dùng</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+  /* ============================================
+     Admin Login Script — Real API
+  ============================================ */
+
+  const form     = document.getElementById('adminLoginForm');
+  const emailIn  = document.getElementById('adminEmail');
+  const pwIn     = document.getElementById('adminPassword');
+  const emailErr = document.getElementById('emailError');
+  const pwErr    = document.getElementById('pwError');
+  const togglePw = document.getElementById('togglePw');
+
+  togglePw.addEventListener('click', () => {
+    const isPassword = pwIn.type === 'password';
+    pwIn.type = isPassword ? 'text' : 'password';
+    togglePw.textContent = isPassword ? '🙈' : '👁️';
+  });
+
+  function validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function clearErrors() {
+    emailErr.textContent = '';
+    pwErr.textContent = '';
+    emailIn.classList.remove('error');
+    pwIn.classList.remove('error');
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const email = emailIn.value.trim();
+    const pw    = pwIn.value;
+    let valid   = true;
+
+    if (!email) {
+      emailErr.textContent = 'Vui lòng nhập email';
+      emailIn.classList.add('error');
+      valid = false;
+    } else if (!validateEmail(email)) {
+      emailErr.textContent = 'Email không hợp lệ';
+      emailIn.classList.add('error');
+      valid = false;
+    }
+
+    if (!pw) {
+      pwErr.textContent = 'Vui lòng nhập mật khẩu';
+      pwIn.classList.add('error');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById('adminLoginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Đang xác thực...';
+
+    try {
+      const data = await authAPI.login(email, pw);
+
+      // Check if user is admin
+      if (data.user.role !== 'admin') {
+        throw new Error('Tài khoản không có quyền quản trị viên');
+      }
+
+      Auth.save(data.token, data.user);
+      showToast('Đăng nhập Admin thành công! 👑', 'success');
+
+      setTimeout(() => {
+        location.href = 'dashboard.html';
+      }, 600);
+    } catch (err) {
+      showToast(err.message || 'Đăng nhập thất bại', 'error');
+      pwErr.textContent = err.message;
+      btn.disabled = false;
+      btn.innerHTML = '🔐 Đăng nhập Admin';
+    }
+  });
+
+  // Redirect if already admin
+  if (Auth.isLoggedIn() && Auth.isAdmin()) {
+    location.href = 'dashboard.html';
+  }
+  </script>
+</body>
+</html>

@@ -248,7 +248,7 @@
           <div class="user-dropdown">
             <a href="../index.html">🏠 Về trang chủ</a>
             <a href="../profile.html">👤 Hồ sơ cá nhân</a>
-            <a href="../login.html" id="logoutBtn" class="divider">🚪 Đăng xuất</a>
+            <a href="#" id="logoutBtn" class="divider">🚪 Đăng xuất</a>
           </div>
         </div>
       </div>
@@ -275,7 +275,7 @@
         <span>👥</span> Người dùng
       </a>
       <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
-      <a href="../login.html" class="admin-menu-item">
+      <a href="../index.html" class="admin-menu-item">
         <span>🏠</span> Về trang chủ
       </a>
     </aside>
@@ -383,38 +383,11 @@
   <script src="../js/api.js"></script>
   <script>
     /* ============================================
-       Admin Dashboard Script
+       Admin Dashboard Script — Real API
     ============================================ */
 
-    /* ── Mock Data ───────────────────────────── */
-    const MOCK_REVENUE = [
-      { day: '11/05', value: 32500000 },
-      { day: '12/05', value: 45200000 },
-      { day: '13/05', value: 28700000 },
-      { day: '14/05', value: 51300000 },
-      { day: '15/05', value: 39800000 },
-      { day: '16/05', value: 62100000 },
-      { day: '17/05', value: 48300000 },
-    ];
-
-    const MOCK_TOP_PRODUCTS = [
-      { name: 'iPhone 15 Pro Max 256GB', icon: '📱', bg: '#E8F4FD', sold: 1243, revenue: 37257570000 },
-      { name: 'Bộ sách Đắc Nhân Tâm', icon: '📖', bg: '#F3E5F5', sold: 5632, revenue: 478720000 },
-      { name: 'Kem dưỡng da Innisfree', icon: '🧴', bg: '#FCE4EC', sold: 4231, revenue: 930820000 },
-      { name: 'Áo thun nam Polo Premium', icon: '👕', bg: '#FEF9EF', sold: 3421, revenue: 1022919000 },
-      { name: 'Quần jean nữ Skinny', icon: '👖', bg: '#E0F7FA', sold: 2108, revenue: 820012000 },
-    ];
-
-    const MOCK_RECENT_ORDERS = [
-      { id: 'SN2405F1', customer: 'Trần Minh Tuấn', items: 2, total: 36980000, status: 'pending', date: '17/05/2024' },
-      { id: 'SN2405F2', customer: 'Nguyễn Thị Lan', items: 1, total: 6990000, status: 'confirmed', date: '17/05/2024' },
-      { id: 'SN2405F3', customer: 'Phạm Văn Đức', items: 3, total: 598000, status: 'shipping', date: '16/05/2024' },
-      { id: 'SN2405F4', customer: 'Lê Hoàng Nam', items: 1, total: 29990000, status: 'delivered', date: '16/05/2024' },
-      { id: 'SN2405F5', customer: 'Đỗ Thu Hà', items: 2, total: 1290000, status: 'pending', date: '15/05/2024' },
-      { id: 'SN2405F6', customer: 'Vũ Quang Huy', items: 4, total: 2580000, status: 'cancelled', date: '15/05/2024' },
-      { id: 'SN2405F7', customer: 'Hoàng Thị Mai', items: 1, total: 890000, status: 'delivered', date: '14/05/2024' },
-      { id: 'SN2405F8', customer: 'Bùi Thanh Tùng', items: 2, total: 14990000, status: 'shipping', date: '14/05/2024' },
-    ];
+    // Auth check
+    if (!Auth.requireAdmin()) { /* redirected */ }
 
     const STATUS_MAP = {
       pending: { label: 'Chờ xác nhận', badge: 'badge-warning' },
@@ -424,45 +397,80 @@
       cancelled: { label: 'Đã hủy', badge: 'badge-danger' },
     };
 
-    /* ── Revenue Chart ──────────────────────── */
-    const maxRev = Math.max(...MOCK_REVENUE.map(r => r.value));
-    const colors = ['#FF6B35', '#EE4D2D', '#FF8C42', '#7B2FF7', '#14B8A6', '#EE4D2D', '#FF6B35'];
-    document.getElementById('revenueChart').innerHTML = MOCK_REVENUE.map((r, i) => {
-      const h = Math.max(10, (r.value / maxRev) * 100);
-      return `
-      <div class="mini-bar" style="height:${h}%;background:${colors[i]};">
-        <span class="mini-bar-val">${(r.value / 1e6).toFixed(0)}M</span>
-        <span class="mini-bar-label">${r.day}</span>
-      </div>`;
-    }).join('');
+    /* ── Load Dashboard Data from API ────────── */
+    async function loadDashboard() {
+      try {
+        // Load stats
+        const statsData = await dashboardAPI.stats();
+        const s = statsData.stats;
+        document.getElementById('statRevenue').textContent = formatPrice(s.revenue);
+        document.getElementById('statOrders').textContent = s.orders.toLocaleString();
+        document.getElementById('statProducts').textContent = s.products.toLocaleString();
+        document.getElementById('statUsers').textContent = s.users.toLocaleString();
+      } catch (err) {
+        console.error('Load stats error:', err);
+      }
 
-    /* ── Top Products ───────────────────────── */
-    const rankClasses = ['gold', 'silver', 'bronze', 'normal', 'normal'];
-    document.getElementById('topProducts').innerHTML = MOCK_TOP_PRODUCTS.map((p, i) => `
-    <div class="top-product">
-      <div class="top-product-rank ${rankClasses[i]}">${i + 1}</div>
-      <div class="top-product-img" style="background:${p.bg}">${p.icon}</div>
-      <div class="top-product-info">
-        <div class="top-product-name">${p.name}</div>
-        <div class="top-product-sold">Đã bán ${p.sold.toLocaleString()}</div>
-      </div>
-      <div class="top-product-revenue">${formatPrice(p.revenue)}</div>
-    </div>
-  `).join('');
+      try {
+        // Load top products
+        const topData = await dashboardAPI.topProducts();
+        const rankClasses = ['gold', 'silver', 'bronze', 'normal', 'normal'];
+        document.getElementById('topProducts').innerHTML = (topData.products || []).map((p, i) => `
+          <div class="top-product">
+            <div class="top-product-rank ${rankClasses[i] || 'normal'}">${i + 1}</div>
+            <div class="top-product-img" style="background:${p.bg_color || '#F5F5F5'}">${p.icon || '📦'}</div>
+            <div class="top-product-info">
+              <div class="top-product-name">${p.name}</div>
+              <div class="top-product-sold">Đã bán ${(p.sold || 0).toLocaleString()}</div>
+            </div>
+            <div class="top-product-revenue">${formatPrice(p.revenue || 0)}</div>
+          </div>
+        `).join('') || '<p style="color:var(--text-muted);text-align:center;">Chưa có dữ liệu</p>';
+      } catch (err) {
+        console.error('Load top products error:', err);
+      }
 
-    /* ── Recent Orders ──────────────────────── */
-    document.getElementById('recentOrdersBody').innerHTML = MOCK_RECENT_ORDERS.map(o => {
-      const st = STATUS_MAP[o.status];
-      return `
-      <tr>
-        <td><span class="order-id-link">${o.id}</span></td>
-        <td>${o.customer}</td>
-        <td>${o.items} sản phẩm</td>
-        <td style="font-weight:700;color:var(--primary);">${formatPrice(o.total)}</td>
-        <td><span class="badge ${st.badge}">${st.label}</span></td>
-        <td style="color:var(--text-muted);">${o.date}</td>
-      </tr>`;
-    }).join('');
+      try {
+        // Load recent orders
+        const ordersData = await dashboardAPI.recentOrders();
+        document.getElementById('recentOrdersBody').innerHTML = (ordersData.orders || []).map(o => {
+          const st = STATUS_MAP[o.status] || STATUS_MAP.pending;
+          const date = new Date(o.created_at).toLocaleDateString('vi-VN');
+          return `
+          <tr>
+            <td><span class="order-id-link">#${o.id}</span></td>
+            <td>${o.customer || '—'}</td>
+            <td>${o.items_count || 0} sản phẩm</td>
+            <td style="font-weight:700;color:var(--primary);">${formatPrice(o.total)}</td>
+            <td><span class="badge ${st.badge}">${st.label}</span></td>
+            <td style="color:var(--text-muted);">${date}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Chưa có đơn hàng</td></tr>';
+      } catch (err) {
+        console.error('Load recent orders error:', err);
+      }
+
+      // Revenue chart (mock since we don't have daily revenue API)
+      const MOCK_REVENUE = [
+        { day: 'T2', value: 32500000 },
+        { day: 'T3', value: 45200000 },
+        { day: 'T4', value: 28700000 },
+        { day: 'T5', value: 51300000 },
+        { day: 'T6', value: 39800000 },
+        { day: 'T7', value: 62100000 },
+        { day: 'CN', value: 48300000 },
+      ];
+      const maxRev = Math.max(...MOCK_REVENUE.map(r => r.value));
+      const colors = ['#FF6B35', '#EE4D2D', '#FF8C42', '#7B2FF7', '#14B8A6', '#EE4D2D', '#FF6B35'];
+      document.getElementById('revenueChart').innerHTML = MOCK_REVENUE.map((r, i) => {
+        const h = Math.max(10, (r.value / maxRev) * 100);
+        return `
+        <div class="mini-bar" style="height:${h}%;background:${colors[i]};">
+          <span class="mini-bar-val">${(r.value / 1e6).toFixed(0)}M</span>
+          <span class="mini-bar-label">${r.day}</span>
+        </div>`;
+      }).join('');
+    }
 
     /* ── Navbar ─────────────────────────────── */
     const user = Auth.getUser();
@@ -470,6 +478,9 @@
       const el = document.getElementById('navUserName');
       if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
     }
+
+    // Init
+    loadDashboard();
   </script>
 </body>
 

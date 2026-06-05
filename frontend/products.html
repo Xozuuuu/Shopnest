@@ -204,67 +204,11 @@
 
   <!-- ╔══════════════════════════════════════╗
        ║              FOOTER                   ║
-       ╚══════════════════════════════════════╝ -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-col">
-        <div class="footer-logo">Shop<span>Nest</span></div>
-        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Hỗ trợ khách hàng</h4>
-        <a href="#">Trung tâm hỗ trợ</a>
-        <a href="#">Chính sách đổi trả</a>
-        <a href="#">Chính sách bảo hành</a>
-        <a href="#">Hướng dẫn đặt hàng</a>
-      </div>
-      <div class="footer-col">
-        <h4>Về ShopNest</h4>
-        <a href="#">Giới thiệu</a>
-        <a href="#">Tuyển dụng</a>
-        <a href="#">Điều khoản dịch vụ</a>
-        <a href="#">Chính sách bảo mật</a>
-      </div>
-      <div class="footer-col">
-        <h4>Liên hệ</h4>
-        <p>📧 support@shopnest.vn</p>
-        <p>📞 1800 6789 (miễn phí)</p>
-        <p>🕐 Thứ 2 – CN: 8:00 – 22:00</p>
-        <p>📍 TP. Hồ Chí Minh, Việt Nam</p>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      © 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.
-    </div>
-  </footer>
-
-  <script src="js/api.js"></script>
+<script src="js/api.js"></script>
   <script>
   /* ============================================
-     Products Page Script
+     Products Page Script — Real API
   ============================================ */
-
-  /* ── Mock Data ───────────────────────────── */
-  const ALL_PRODUCTS = [
-    { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
-    { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
-    { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
-    { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
-    { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
-    { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
-    { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
-    { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
-    { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
-    { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
-    { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
-    { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
-    { id:13, name:'iPad Air M2 11 inch 128GB',    price:16990000, original:19990000, rating:4.8, sold:321,  cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
-    { id:14, name:'Bàn phím cơ Akko 3068B Plus',  price:1290000,  original:1690000,  rating:4.6, sold:876,  cat:'dien-tu',   icon:'⌨️', bg:'#F3E5F5'  },
-    { id:15, name:'Dép Adidas Adilette Comfort',  price:790000,   original:1100000,  rating:4.4, sold:2345, cat:'the-thao',  icon:'🩴', bg:'#E0F7FA'  },
-    { id:16, name:'Son môi MAC Powder Kiss',       price:480000,   original:650000,   rating:4.7, sold:3210, cat:'lam-dep',   icon:'💄', bg:'#FCE4EC'  },
-    { id:17, name:'Trà sữa Gong Cha hộp 6 gói',  price:89000,    original:120000,   rating:4.3, sold:8765, cat:'thuc-pham', icon:'🧋', bg:'#FFF8E1'  },
-    { id:18, name:'Máy hút bụi Dyson V15 Detect', price:14990000, original:18990000, rating:4.9, sold:234,  cat:'gia-dung',  icon:'🧹', bg:'#E8F5E9'  },
-  ];
 
   const CAT_NAMES = {
     'dien-tu':    'Điện tử',
@@ -277,10 +221,11 @@
   };
 
   const PER_PAGE = 12;
-  let currentSort   = 'popular';
+  let currentSort   = 'sold';
   let currentPage    = 1;
   let minRating      = 0;
-  let filteredProducts = [...ALL_PRODUCTS];
+  let allProducts    = [];
+  let filteredProducts = [];
 
   /* ── Read Query Params ──────────────────── */
   const params = new URLSearchParams(location.search);
@@ -304,49 +249,71 @@
 
   /* ── Render Product Card ────────────────── */
   function renderCard(p) {
-    const disc = calcDiscount(p.original, p.price);
+    const original = p.original_price || p.original || p.price;
+    const disc = calcDiscount(original, p.price);
+    const imgContent = p.image_url
+      ? `<img src="${getProductImageSrc(p)}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${p.icon || '📦'}'">`
+      : (p.icon || '📦');
+    const bgStyle = p.image_url ? 'background:#fff;' : `background:${p.bg_color || p.bg || '#F5F5F5'};`;
     return `
     <div class="product-card"
          onclick="location.href='product-detail.html?id=${p.id}'"
          title="${p.name}">
       <div class="product-img-wrap">
-        <div class="prod-img" style="background:${p.bg}">${p.icon}</div>
+        <div class="prod-img" style="${bgStyle}">${imgContent}</div>
         <span class="product-badge">-${disc}%</span>
       </div>
       <div class="product-info">
         <h4 class="product-name">${p.name}</h4>
         <div class="product-price">
           <span class="price">${formatPrice(p.price)}</span>
-          <span class="original-price">${formatPrice(p.original)}</span>
+          <span class="original-price">${formatPrice(original)}</span>
         </div>
         <div class="product-meta">
-          <span class="rating">⭐ ${p.rating}</span>
-          <span class="sold">Đã bán ${p.sold > 999 ? (p.sold/1000).toFixed(1)+'k' : p.sold}</span>
+          <span class="rating">⭐ ${p.rating || 0}</span>
+          <span class="sold">Đã bán ${(p.sold || 0) > 999 ? ((p.sold || 0)/1000).toFixed(1)+'k' : (p.sold || 0)}</span>
         </div>
       </div>
     </div>`;
   }
 
-  /* ── Filter & Render ────────────────────── */
-  function applyFilters() {
+  /* ── Load Products from API ────────────── */
+  async function loadProducts() {
+    try {
+      const apiParams = { limit: 100, sort: currentSort };
+
+      // Category from URL or sidebar
+      const checkedCats = [...document.querySelectorAll('.cat-filter:checked')].map(c => c.value);
+      if (checkedCats.length === 1) {
+        apiParams.category = checkedCats[0];
+      } else if (queryCat && checkedCats.length === 0) {
+        apiParams.category = queryCat;
+      }
+
+      // Search query
+      if (queryQ) {
+        apiParams.search = queryQ;
+      }
+
+      const data = await productAPI.getAll(apiParams);
+      allProducts = data.products || [];
+
+      applyClientFilters();
+    } catch (err) {
+      console.error('Load products error:', err);
+      document.getElementById('productGrid').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);grid-column:1/-1;">Không thể tải sản phẩm. Vui lòng kiểm tra kết nối server.</div>';
+    }
+  }
+
+  /* ── Client-side filters (price, rating, sort) ── */
+  function applyClientFilters() {
     currentPage = 1;
-    let prods = [...ALL_PRODUCTS];
+    let prods = [...allProducts];
 
-    // Category filter
+    // Additional category filter (if multiple checked)
     const checkedCats = [...document.querySelectorAll('.cat-filter:checked')].map(c => c.value);
-    if (checkedCats.length > 0) {
-      prods = prods.filter(p => checkedCats.includes(p.cat));
-    }
-
-    // Search query
-    if (queryQ) {
-      const q = queryQ.toLowerCase();
-      prods = prods.filter(p => p.name.toLowerCase().includes(q));
-    }
-
-    // Sale filter
-    if (querySale === 'true') {
-      prods = prods.filter(p => calcDiscount(p.original, p.price) >= 20);
+    if (checkedCats.length > 1) {
+      prods = prods.filter(p => checkedCats.includes(p.category_slug));
     }
 
     // Price filter
@@ -356,29 +323,32 @@
     if (pMax > 0) prods = prods.filter(p => p.price <= pMax);
 
     // Rating filter
-    if (minRating > 0) prods = prods.filter(p => p.rating >= minRating);
+    if (minRating > 0) prods = prods.filter(p => (p.rating || 0) >= minRating);
+
+    // Sale filter
+    if (querySale === 'true') {
+      prods = prods.filter(p => calcDiscount(p.original_price || p.price, p.price) >= 20);
+    }
 
     filteredProducts = prods;
     sortAndRender();
   }
 
+  function applyFilters() {
+    loadProducts();
+  }
+
   function sortProducts(sort, btn) {
-    currentSort = sort;
+    const sortMap = { 'popular': 'sold', 'newest': 'newest', 'price-asc': 'price_asc', 'price-desc': 'price_desc' };
+    currentSort = sortMap[sort] || 'sold';
     currentPage = 1;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    sortAndRender();
+    loadProducts();
   }
 
   function sortAndRender() {
     let prods = [...filteredProducts];
-
-    switch (currentSort) {
-      case 'popular':    prods.sort((a,b) => b.sold - a.sold); break;
-      case 'newest':     prods.sort((a,b) => b.id - a.id); break;
-      case 'price-asc':  prods.sort((a,b) => a.price - b.price); break;
-      case 'price-desc': prods.sort((a,b) => b.price - a.price); break;
-    }
 
     // Pagination
     const total = prods.length;
@@ -401,7 +371,9 @@
     }
 
     // Results count
-    document.getElementById('resultsCount').textContent = `Hiển thị ${start+1}–${Math.min(start+PER_PAGE, total)} trên ${total} sản phẩm`;
+    document.getElementById('resultsCount').textContent = total > 0
+      ? `Hiển thị ${start+1}–${Math.min(start+PER_PAGE, total)} trên ${total} sản phẩm`
+      : 'Không có sản phẩm';
 
     // Pagination
     renderPagination(pages);
@@ -431,12 +403,12 @@
       el.style.background = (+el.dataset.rating === minRating) ? 'var(--primary-light)' : '';
       el.style.borderRadius = 'var(--radius-sm)';
     });
-    applyFilters();
+    applyClientFilters();
   }
 
   /* ── Category checkbox change ───────────── */
   document.querySelectorAll('.cat-filter').forEach(cb => {
-    cb.addEventListener('change', applyFilters);
+    cb.addEventListener('change', () => loadProducts());
   });
 
   /* ── Search ─────────────────────────────── */

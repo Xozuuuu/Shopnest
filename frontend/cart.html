@@ -293,92 +293,131 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Cart Page Script
+     Cart Page Script — API Connected
   ============================================ */
 
-  function renderCart() {
-    const cart = CartLocal.get();
+  // Auth check
+  if (!Auth.requireLogin()) { /* redirected */ }
+
+  let cartItemsList = [];
+
+  async function renderCart() {
     const content = document.getElementById('cartContent');
     const empty   = document.getElementById('emptyCart');
 
-    if (cart.length === 0) {
-      content.classList.add('hidden');
-      empty.classList.remove('hidden');
-      return;
+    try {
+      const data = await cartAPI.get();
+      cartItemsList = data.items || [];
+
+      if (cartItemsList.length === 0) {
+        content.classList.add('hidden');
+        empty.classList.remove('hidden');
+        updateCartBadge();
+        return;
+      }
+
+      content.classList.remove('hidden');
+      empty.classList.add('hidden');
+
+      // Render items
+      const itemsHtml = cartItemsList.map(item => {
+        const thumbContent = item.image_url
+          ? `<img src="${getProductImageSrc(item)}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${item.icon || '📦'}'">`
+          : (item.icon || '📦');
+        const bgStyle = item.image_url ? 'background:#fff;' : `background:${item.bg || '#F5F5F5'};`;
+
+        return `
+          <div class="cart-item" data-id="${item.id}">
+            <div class="cart-item-img" style="${bgStyle}">${thumbContent}</div>
+            <div class="cart-item-info">
+              <div class="cart-item-name" style="cursor:pointer;" onclick="location.href='product-detail.html?id=${item.productId}'">${item.name}</div>
+              <div class="cart-item-cat">${item.cat || ''}</div>
+              <div class="cart-item-price-mobile">${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(item.price * item.quantity)}</div>
+            </div>
+            <div class="cart-item-price">${formatPrice(item.price)}</div>
+            <div class="qty-sm">
+              <button onclick="updateQty(${item.id}, -1)">−</button>
+              <input type="number" value="${item.quantity}" min="1" max="99"
+                     onchange="setQty(${item.id}, this.value)" />
+              <button onclick="updateQty(${item.id}, 1)">+</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="cart-item-subtotal">${formatPrice(item.price * item.quantity)}</span>
+              <button class="cart-remove" onclick="removeItem(${item.id})" title="Xóa">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cartItems').innerHTML = itemsHtml;
+
+      // Summary
+      const subtotal = data.total;
+      const count    = cartItemsList.reduce((s, i) => s + i.quantity, 0);
+      const shipping = subtotal >= 300000 ? 0 : 30000;
+      const discount = 0;
+      const total    = subtotal + shipping - discount;
+
+      document.getElementById('sumCount').textContent    = count;
+      document.getElementById('sumSubtotal').textContent = formatPrice(subtotal);
+      document.getElementById('sumShipping').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
+      document.getElementById('sumDiscount').textContent = `-${formatPrice(discount)}`;
+      document.getElementById('sumTotal').textContent    = formatPrice(total);
+
+      updateCartBadge();
+    } catch (err) {
+      console.error('Error fetching cart:', err);
+      showToast('Lỗi khi tải giỏ hàng: ' + err.message, 'error');
     }
-
-    content.classList.remove('hidden');
-    empty.classList.add('hidden');
-
-    // Render items
-    const itemsHtml = cart.map(item => `
-      <div class="cart-item" data-id="${item.id}">
-        <div class="cart-item-img" style="background:${item.bg || '#F5F5F5'}">${item.icon || '📦'}</div>
-        <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-cat">${item.cat || ''}</div>
-          <div class="cart-item-price-mobile">${formatPrice(item.price)} × ${item.quantity} = ${formatPrice(item.price * item.quantity)}</div>
-        </div>
-        <div class="cart-item-price">${formatPrice(item.price)}</div>
-        <div class="qty-sm">
-          <button onclick="updateQty(${item.id}, -1)">−</button>
-          <input type="number" value="${item.quantity}" min="1" max="99"
-                 onchange="setQty(${item.id}, this.value)" />
-          <button onclick="updateQty(${item.id}, 1)">+</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="cart-item-subtotal">${formatPrice(item.price * item.quantity)}</span>
-          <button class="cart-remove" onclick="removeItem(${item.id})" title="Xóa">✕</button>
-        </div>
-      </div>
-    `).join('');
-
-    document.getElementById('cartItems').innerHTML = itemsHtml;
-
-    // Summary
-    const subtotal = CartLocal.total();
-    const count    = CartLocal.count();
-    const shipping = subtotal >= 300000 ? 0 : 30000;
-    const discount = 0;
-    const total    = subtotal + shipping - discount;
-
-    document.getElementById('sumCount').textContent    = count;
-    document.getElementById('sumSubtotal').textContent = formatPrice(subtotal);
-    document.getElementById('sumShipping').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
-    document.getElementById('sumDiscount').textContent = `-${formatPrice(discount)}`;
-    document.getElementById('sumTotal').textContent    = formatPrice(total);
   }
 
-  function updateQty(id, delta) {
-    const cart = CartLocal.get();
-    const item = cart.find(i => i.id === id);
+  async function updateQty(id, delta) {
+    const item = cartItemsList.find(i => i.id === id);
     if (!item) return;
     const newQty = Math.max(1, Math.min(99, item.quantity + delta));
-    CartLocal.update(id, newQty);
-    renderCart();
+    
+    try {
+      await cartAPI.update(id, newQty);
+      renderCart();
+    } catch (err) {
+      showToast('Lỗi cập nhật số lượng: ' + err.message, 'error');
+    }
   }
 
-  function setQty(id, val) {
+  async function setQty(id, val) {
     const qty = Math.max(1, Math.min(99, Number(val)));
-    CartLocal.update(id, qty);
-    renderCart();
+    try {
+      await cartAPI.update(id, qty);
+      renderCart();
+    } catch (err) {
+      showToast('Lỗi cập nhật số lượng: ' + err.message, 'error');
+    }
   }
 
-  function removeItem(id) {
-    CartLocal.remove(id);
-    showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'info');
-    renderCart();
+  async function removeItem(id) {
+    try {
+      await cartAPI.remove(id);
+      showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'info');
+      renderCart();
+    } catch (err) {
+      showToast('Lỗi xóa sản phẩm: ' + err.message, 'error');
+    }
   }
 
-  function clearCart() {
-    if (CartLocal.count() === 0) return;
-    CartLocal.clear();
-    showToast('Đã xóa toàn bộ giỏ hàng', 'info');
-    renderCart();
+  async function clearCart() {
+    if (cartItemsList.length === 0) return;
+    if (!confirm('Xóa toàn bộ giỏ hàng?')) return;
+    try {
+      await cartAPI.clear();
+      showToast('Đã xóa toàn bộ giỏ hàng', 'info');
+      renderCart();
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+    }
   }
 
   function goCheckout() {
-    if (CartLocal.count() === 0) {
+    if (cartItemsList.length === 0) {
       showToast('Giỏ hàng trống!', 'error');
       return;
     }

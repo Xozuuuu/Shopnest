@@ -326,116 +326,166 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Product Detail Script
+     Product Detail Script — API Connected
   ============================================ */
-
-  /* ── Mock Data ───────────────────────────── */
-  const ALL_PRODUCTS = [
-    { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
-    { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
-    { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
-    { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
-    { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
-    { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
-    { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
-    { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
-    { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
-    { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
-    { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
-    { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
-  ];
 
   const CAT_NAMES = {
     'dien-tu':'Điện tử','thoi-trang':'Thời trang','gia-dung':'Gia dụng',
     'sach':'Sách','the-thao':'Thể thao','lam-dep':'Làm đẹp','thuc-pham':'Thực phẩm',
   };
 
-  const MOCK_REVIEWS = [
-    { name:'Nguyễn Văn An',  avatar:'👨', rating:5, date:'15/05/2024', text:'Sản phẩm rất tốt, đúng mô tả. Giao hàng nhanh, đóng gói cẩn thận. Rất hài lòng!' },
-    { name:'Trần Thị Bích',  avatar:'👩', rating:4, date:'12/05/2024', text:'Chất lượng ổn so với giá tiền. Ship nhanh, hàng nguyên seal. Sẽ ủng hộ shop lần sau.' },
-    { name:'Phạm Minh Đức',  avatar:'👨', rating:5, date:'08/05/2024', text:'Mua lần thứ 2 rồi. Sản phẩm chính hãng, giá tốt hơn nhiều nơi khác. Recommend!' },
-    { name:'Lê Thùy Linh',   avatar:'👩', rating:4, date:'01/05/2024', text:'Hàng đẹp, màu sắc đúng hình. Chỉ hơi lâu giao hàng nhưng chấp nhận được.' },
-  ];
+  const productId = Number(new URLSearchParams(location.search).get('id'));
+  if (!productId) {
+    location.href = 'products.html';
+  }
 
-  /* ── Get Product ────────────────────────── */
-  const productId = Number(new URLSearchParams(location.search).get('id')) || 1;
-  const product = ALL_PRODUCTS.find(p => p.id === productId) || ALL_PRODUCTS[0];
+  let product = null;
 
-  /* ── Render Product Info ────────────────── */
-  document.title = `${product.name} — ShopNest`;
-  document.getElementById('productName').textContent    = product.name;
-  document.getElementById('productImg').style.background = product.bg;
-  document.getElementById('productImg').textContent      = product.icon;
-  document.getElementById('productPrice').textContent    = formatPrice(product.price);
-  document.getElementById('productOriginal').textContent = formatPrice(product.original);
-  document.getElementById('productDiscount').textContent = `-${calcDiscount(product.original, product.price)}%`;
-  document.getElementById('productRating').textContent   = product.rating;
-  document.getElementById('productStars').textContent    = renderStars(product.rating);
-  document.getElementById('productSold').textContent     = `Đã bán ${product.sold > 999 ? (product.sold/1000).toFixed(1)+'k' : product.sold}`;
-  document.getElementById('breadcrumbCat').textContent   = CAT_NAMES[product.cat] || 'Sản phẩm';
-  document.getElementById('breadcrumbCat').href          = `products.html?cat=${product.cat}`;
-  document.getElementById('breadcrumbName').textContent  = product.name;
+  /* ── Load Product and Reviews ──────────────── */
+  async function loadProductDetail() {
+    try {
+      // 1. Fetch Product
+      const data = await productAPI.getById(productId);
+      product = data.product;
+      if (!product) throw new Error('Không tìm thấy sản phẩm');
 
-  /* ── Description ────────────────────────── */
-  document.getElementById('descContent').innerHTML = `
-    <h4>Mô tả sản phẩm</h4>
-    <p>${product.name} — sản phẩm chất lượng cao thuộc danh mục <strong>${CAT_NAMES[product.cat]}</strong>. 
-    Được hàng nghìn khách hàng tin tưởng lựa chọn trên ShopNest.</p>
-    <h4>Đặc điểm nổi bật</h4>
-    <ul>
-      <li>Sản phẩm chính hãng 100%, cam kết chất lượng</li>
-      <li>Bảo hành chính hãng 12 tháng tại trung tâm bảo hành toàn quốc</li>
-      <li>Miễn phí giao hàng cho đơn từ ₫300.000</li>
-      <li>Đổi trả dễ dàng trong vòng 30 ngày</li>
-      <li>Hỗ trợ kỹ thuật 24/7 qua hotline 1800 6789</li>
-    </ul>
-    <h4>Thông số kỹ thuật</h4>
-    <ul>
-      <li>Thương hiệu: ${product.name.split(' ')[0]}</li>
-      <li>Danh mục: ${CAT_NAMES[product.cat]}</li>
-      <li>Xuất xứ: Chính hãng</li>
-      <li>Kho hàng: TP. Hồ Chí Minh</li>
-      <li>Gửi từ: Việt Nam</li>
-    </ul>
-  `;
+      // 2. Render Info
+      document.title = `${product.name} — ShopNest`;
+      document.getElementById('productName').textContent    = product.name;
+      
+      const imgEl = document.getElementById('productImg');
+      if (product.image_url) {
+        const src = getProductImageSrc(product);
+        imgEl.style.background = '#fff';
+        imgEl.innerHTML = `<img src="${src}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.parentElement.innerHTML='${product.icon || '📦'}'" />`;
+      } else {
+        imgEl.style.background = product.bg_color || '#F5F5F5';
+        imgEl.innerHTML = product.icon || '📦';
+      }
 
-  /* ── Reviews ────────────────────────────── */
-  document.getElementById('reviewCount').textContent = MOCK_REVIEWS.length;
-  document.getElementById('reviewsList').innerHTML = MOCK_REVIEWS.map(r => `
-    <div class="review-item">
-      <div class="review-header">
-        <div class="review-avatar">${r.avatar}</div>
-        <div>
-          <div class="review-name">${r.name}</div>
-          <div class="review-date">${r.date}</div>
-        </div>
-      </div>
-      <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
-      <div class="review-text">${r.text}</div>
-    </div>
-  `).join('');
+      document.getElementById('productPrice').textContent    = formatPrice(product.price);
+      const original = product.original_price || product.price;
+      document.getElementById('productOriginal').textContent = formatPrice(original);
+      document.getElementById('productDiscount').textContent = `-${calcDiscount(original, product.price)}%`;
+      document.getElementById('productRating').textContent   = product.rating || '5.0';
+      document.getElementById('productStars').textContent    = renderStars(product.rating || 5);
+      document.getElementById('productSold').textContent     = `Đã bán ${product.sold > 999 ? (product.sold/1000).toFixed(1)+'k' : (product.sold || 0)}`;
+      document.getElementById('stockText').textContent       = product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng';
+      
+      const breadcrumbCat = document.getElementById('breadcrumbCat');
+      breadcrumbCat.textContent = product.category_name || 'Sản phẩm';
+      breadcrumbCat.href = `products.html?cat=${product.category_slug || ''}`;
+      document.getElementById('breadcrumbName').textContent = product.name;
 
-  /* ── Related Products ───────────────────── */
-  const related = ALL_PRODUCTS.filter(p => p.cat === product.cat && p.id !== product.id).slice(0, 6);
-  document.getElementById('relatedGrid').innerHTML = related.map(p => `
-    <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'" title="${p.name}">
-      <div class="product-img-wrap">
-        <div class="prod-img" style="background:${p.bg}">${p.icon}</div>
-        <span class="product-badge">-${calcDiscount(p.original, p.price)}%</span>
-      </div>
-      <div class="product-info">
-        <h4 class="product-name">${p.name}</h4>
-        <div class="product-price">
-          <span class="price">${formatPrice(p.price)}</span>
-          <span class="original-price">${formatPrice(p.original)}</span>
-        </div>
-        <div class="product-meta">
-          <span class="rating">⭐ ${p.rating}</span>
-          <span class="sold">Đã bán ${p.sold > 999 ? (p.sold/1000).toFixed(1)+'k' : p.sold}</span>
-        </div>
-      </div>
-    </div>
-  `).join('');
+      // 3. Render Description
+      document.getElementById('descContent').innerHTML = `
+        <h4>Mô tả sản phẩm</h4>
+        <p>${product.description || 'Chưa có mô tả cho sản phẩm này.'}</p>
+        <h4>Đặc điểm nổi bật</h4>
+        <ul>
+          <li>Sản phẩm chính hãng 100%, cam kết chất lượng</li>
+          <li>Bảo hành chính hãng 12 tháng tại trung tâm bảo hành toàn quốc</li>
+          <li>Miễn phí giao hàng cho đơn từ ₫300.000</li>
+          <li>Đổi trả dễ dàng trong vòng 30 ngày</li>
+          <li>Hỗ trợ kỹ thuật 24/7 qua hotline 1800 6789</li>
+        </ul>
+        <h4>Thông số kỹ thuật</h4>
+        <ul>
+          <li>Thương hiệu: ${product.name.split(' ')[0]}</li>
+          <li>Danh mục: ${product.category_name || 'Khác'}</li>
+          <li>Xuất xứ: Chính hãng</li>
+          <li>Kho hàng: TP. Hồ Chí Minh</li>
+          <li>Gửi từ: Việt Nam</li>
+        </ul>
+      `;
+
+      // 4. Fetch and Render Reviews
+      loadReviews();
+
+      // 5. Load Related Products
+      loadRelated();
+
+    } catch (err) {
+      console.error(err);
+      showToast('Không thể tải chi tiết sản phẩm: ' + err.message, 'error');
+      setTimeout(() => location.href = 'products.html', 2000);
+    }
+  }
+
+  async function loadReviews() {
+    try {
+      const data = await reviewAPI.getByProduct(productId);
+      const reviews = data.reviews || [];
+      document.getElementById('reviewCount').textContent = reviews.length;
+      
+      if (reviews.length === 0) {
+        document.getElementById('reviewsList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Chưa có đánh giá nào cho sản phẩm này.</div>';
+        return;
+      }
+
+      document.getElementById('reviewsList').innerHTML = reviews.map(r => {
+        const dateStr = new Date(r.created_at).toLocaleDateString('vi-VN');
+        const firstLetter = r.user_name ? r.user_name.charAt(0).toUpperCase() : 'A';
+        return `
+          <div class="review-item">
+            <div class="review-header">
+              <div class="review-avatar">${firstLetter}</div>
+              <div>
+                <div class="review-name">${r.user_name || 'Người dùng'}</div>
+                <div class="review-date">${dateStr}</div>
+              </div>
+            </div>
+            <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+            <div class="review-text">${r.text || 'Không có bình luận.'}</div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadRelated() {
+    try {
+      if (!product || !product.category_slug) return;
+      const data = await productAPI.getAll({ category: product.category_slug, limit: 7 });
+      const related = (data.products || []).filter(p => p.id !== productId).slice(0, 6);
+      
+      if (related.length === 0) {
+        document.getElementById('relatedGrid').innerHTML = '<div style="color:var(--text-muted);">Không có sản phẩm tương tự.</div>';
+        return;
+      }
+
+      document.getElementById('relatedGrid').innerHTML = related.map(p => {
+        const disc = calcDiscount(p.original_price || p.price, p.price);
+        const imgContent = p.image_url
+          ? `<img src="${getProductImageSrc(p)}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${p.icon || '📦'}'">`
+          : (p.icon || '📦');
+        const bgStyle = p.image_url ? 'background:#fff;' : `background:${p.bg_color || '#F5F5F5'};`;
+        return `
+          <div class="product-card" onclick="location.href='product-detail.html?id=${p.id}'" title="${p.name}">
+            <div class="product-img-wrap">
+              <div class="prod-img" style="${bgStyle}">${imgContent}</div>
+              <span class="product-badge">-${disc}%</span>
+            </div>
+            <div class="product-info">
+              <h4 class="product-name">${p.name}</h4>
+              <div class="product-price">
+                <span class="price">${formatPrice(p.price)}</span>
+                <span class="original-price">${formatPrice(p.original_price || p.price)}</span>
+              </div>
+              <div class="product-meta">
+                <span class="rating">⭐ ${p.rating || '5.0'}</span>
+                <span class="sold">Đã bán ${p.sold > 999 ? (p.sold/1000).toFixed(1)+'k' : (p.sold || 0)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   /* ── Quantity Control ───────────────────── */
   function changeQty(delta) {
@@ -445,16 +495,28 @@
   }
 
   /* ── Add to Cart ────────────────────────── */
-  function addToCart() {
+  async function addToCart() {
+    if (!Auth.requireLogin()) return;
     const qty = Number(document.getElementById('qtyInput').value);
-    CartLocal.add(product, qty);
-    showToast(`Đã thêm ${qty} sản phẩm vào giỏ hàng 🛒`, 'success');
+    
+    try {
+      await cartAPI.add(productId, qty);
+      showToast(`Đã thêm ${qty} sản phẩm vào giỏ hàng 🛒`, 'success');
+      updateCartBadge();
+    } catch (err) {
+      showToast('Lỗi khi thêm vào giỏ hàng: ' + err.message, 'error');
+    }
   }
 
-  function buyNow() {
+  async function buyNow() {
+    if (!Auth.requireLogin()) return;
     const qty = Number(document.getElementById('qtyInput').value);
-    CartLocal.add(product, qty);
-    location.href = 'cart.html';
+    try {
+      await cartAPI.add(productId, qty);
+      location.href = 'cart.html';
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+    }
   }
 
   /* ── Tabs ───────────────────────────────── */

@@ -1,6 +1,5 @@
 /* =============================================
    SHOPNEST — API Utility
-   Base URL: thay đổi khi có backend thật
    ============================================= */
 
 const API_BASE = 'http://localhost:3000/api';
@@ -25,6 +24,22 @@ const POST   = (path, body, auth) => request('POST',   path, body, auth);
 const PUT    = (path, body, auth) => request('PUT',    path, body, auth);
 const DELETE = (path, auth)       => request('DELETE', path, null, auth);
 
+/* ── Upload Helper (multipart/form-data) ─── */
+async function uploadFile(path, formData) {
+  const headers = {};
+  const token = localStorage.getItem('sn_token');
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res  = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Lỗi upload');
+  return data;
+}
+
 /* ── Auth ────────────────────────────────── */
 const authAPI = {
   login:    (email, password)     => POST('/auth/login',    { email, password }),
@@ -43,6 +58,7 @@ const productAPI = {
   create:  (data)        => POST('/products',      data, true),
   update:  (id, data)    => PUT(`/products/${id}`, data, true),
   delete:  (id)          => DELETE(`/products/${id}`, true),
+  uploadImage: (formData) => uploadFile('/products/upload', formData),
 };
 
 /* ── Cart ────────────────────────────────── */
@@ -115,15 +131,43 @@ const Auth = {
     const u = this.getUser();
     return u && u.role === 'admin';
   },
-  requireLogin(redirect = '/login.html') {
-    if (!this.isLoggedIn()) { location.href = redirect; return false; }
+  requireLogin(redirect = null) {
+    if (!this.isLoggedIn()) {
+      location.href = redirect || getRelativePath('login');
+      return false;
+    }
     return true;
   },
   requireAdmin() {
-    if (!this.isAdmin()) { location.href = '/index.html'; return false; }
+    if (!this.isLoggedIn()) {
+      location.href = getRelativePath('admin-login');
+      return false;
+    }
+    if (!this.isAdmin()) {
+      location.href = getRelativePath('index');
+      return false;
+    }
     return true;
   },
 };
+
+/* ── Path Helper for relative routing ─────── */
+function getRelativePath(target) {
+  const inAdmin = location.pathname.includes('/admin/');
+  if (target === 'index') {
+    return inAdmin ? '../index.html' : 'index.html';
+  }
+  if (target === 'admin-login') {
+    return inAdmin ? 'admin-login.html' : 'admin/admin-login.html';
+  }
+  if (target === 'login') {
+    return inAdmin ? '../login.html' : 'login.html';
+  }
+  if (target === 'admin-dashboard') {
+    return inAdmin ? 'dashboard.html' : 'admin/dashboard.html';
+  }
+  return target;
+}
 
 /* ── Cart Local State ─────────────────────── */
 const CartLocal = {
@@ -170,7 +214,22 @@ function showToast(msg, type = 'info') {
 
 function updateCartBadge() {
   const badge = document.querySelector('.cart-badge');
-  if (badge) {
+  if (!badge) return;
+
+  if (Auth.isLoggedIn()) {
+    cartAPI.get()
+      .then(data => {
+        const count = data.items.reduce((s, i) => s + i.quantity, 0);
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      })
+      .catch(err => {
+        console.error('Error fetching cart badge count:', err);
+        const count = CartLocal.count();
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+      });
+  } else {
     const count = CartLocal.count();
     badge.textContent = count;
     badge.style.display = count > 0 ? 'flex' : 'none';
@@ -192,6 +251,23 @@ function renderStars(rating) {
   return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
 }
 
+/* ── Product Image Helper ──────────────────── */
+/* ── Product Image Helper ──────────────────── */
+function getProductImage(product) {
+  if (product.image_url) {
+    const src = getProductImageSrc(product);
+    return `<img src="${src}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.parentElement.innerHTML='${product.icon || '📦'}'"/>`;
+  }
+  return product.icon || '📦';
+}
+
+function getProductImageSrc(product) {
+  if (product.image_url) {
+    return product.image_url.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`;
+  }
+  return '';
+}
+
 /* ── Init Navbar State ───────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
@@ -203,14 +279,55 @@ document.addEventListener('DOMContentLoaded', () => {
       Auth.clear();
       CartLocal.clear();
       showToast('Đăng xuất thành công!', 'info');
-      setTimeout(() => location.href = '/frontend/index.html', 800);
+      setTimeout(() => location.href = getRelativePath('index'), 800);
     });
   }
   // Hide/show nav links based on login state
-  const loginLink   = document.querySelector('[data-show="guest"]');
-  const profileLink = document.querySelector('[data-show="user"]');
-  if (user) {
-    if (loginLink)   loginLink.style.display   = 'none';
-    if (profileLink) profileLink.style.display = 'block';
+  document.querySelectorAll('[data-show="guest"]').forEach(el => {
+    el.style.display = user ? 'none' : 'block';
+  });
+  document.querySelectorAll('[data-show="user"]').forEach(el => {
+    el.style.display = user ? 'block' : 'none';
+  });
+  
+  // Show admin link if user is admin
+  const dropdown = document.querySelector('.user-dropdown');
+  if (dropdown) {
+    let adminLink = dropdown.querySelector('[data-show="admin"]');
+    if (user && user.role === 'admin') {
+      if (!adminLink) {
+        adminLink = document.createElement('a');
+        adminLink.setAttribute('data-show', 'admin');
+        adminLink.className = 'divider';
+        adminLink.innerHTML = '👑 Quản trị Admin';
+        const logoutBtnEl = dropdown.querySelector('#logoutBtn');
+        if (logoutBtnEl) {
+          dropdown.insertBefore(adminLink, logoutBtnEl);
+        } else {
+          dropdown.appendChild(adminLink);
+        }
+      }
+      adminLink.href = getRelativePath('admin-dashboard');
+      adminLink.style.display = 'block';
+    } else if (adminLink) {
+      adminLink.style.display = 'none';
+    }
+  }
+
+  // Inject admin portal link to footer dynamically (column: Về ShopNest)
+  const footerCol = document.querySelector('.footer-col:nth-child(3)');
+  if (footerCol) {
+    let adminFooterLink = footerCol.querySelector('.admin-footer-link');
+    if (!adminFooterLink) {
+      adminFooterLink = document.createElement('a');
+      adminFooterLink.className = 'admin-footer-link';
+      adminFooterLink.style.opacity = '0.5';
+      adminFooterLink.style.fontSize = '12px';
+      adminFooterLink.style.marginTop = '8px';
+      adminFooterLink.style.display = 'block';
+      footerCol.appendChild(adminFooterLink);
+    }
+    adminFooterLink.href = getRelativePath('admin-login');
+    adminFooterLink.innerHTML = '🔒 Cổng Admin';
   }
 });

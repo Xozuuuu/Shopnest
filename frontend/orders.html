@@ -239,6 +239,13 @@
      Orders Page Script
   ============================================ */
 
+  /* ============================================
+     Orders Page Script — API Connected
+  ============================================ */
+
+  // Auth check
+  if (!Auth.requireLogin()) { /* redirected */ }
+
   const STATUS_MAP = {
     pending:    { label: 'Chờ xác nhận', badge: 'badge-warning',  icon: '⏳' },
     confirmed:  { label: 'Đã xác nhận',  badge: 'badge-info',     icon: '✅' },
@@ -247,56 +254,33 @@
     cancelled:  { label: 'Đã hủy',        badge: 'badge-danger',   icon: '❌' },
   };
 
+  let allOrders = [];
   let currentFilter = 'all';
 
-  /* ── Seed Demo Orders if empty ──────────── */
-  function seedDemoOrders() {
-    const existing = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-    if (existing.length > 0) return existing;
+  /* ── Load Orders from API ────────────────── */
+  async function loadOrders() {
+    try {
+      const data = await orderAPI.getAll();
+      allOrders = data.orders || [];
 
-    const demo = [
-      {
-        id: 'SN2405A1', date: '15/05/2024', status: 'delivered',
-        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
-        payment: 'Thanh toán khi nhận hàng',
-        items: [
-          { id:1, name:'iPhone 15 Pro Max 256GB', price:29990000, quantity:1, icon:'📱', bg:'#E8F4FD' },
-          { id:4, name:'Tai nghe Sony WH-1000XM5', price:6990000, quantity:1, icon:'🎧', bg:'#FFF0F0' },
-        ],
-        subtotal: 36980000, shipping: 0, total: 36980000,
-      },
-      {
-        id: 'SN2405B2', date: '10/05/2024', status: 'shipping',
-        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
-        payment: 'Chuyển khoản ngân hàng',
-        items: [
-          { id:3, name:'Áo thun nam Polo Premium', price:299000, quantity:2, icon:'👕', bg:'#FEF9EF' },
-        ],
-        subtotal: 598000, shipping: 0, total: 598000,
-      },
-      {
-        id: 'SN2405C3', date: '05/05/2024', status: 'cancelled',
-        name: 'Nguyễn Văn A', phone: '0901234567', address: '123 Nguyễn Trãi, Q.5, TP.HCM',
-        payment: 'Ví điện tử',
-        items: [
-          { id:6, name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000, quantity:3, icon:'📖', bg:'#F3E5F5' },
-        ],
-        subtotal: 255000, shipping: 30000, total: 285000,
-      },
-    ];
-    localStorage.setItem('sn_orders', JSON.stringify(demo));
-    return demo;
+      renderOrders();
+      updateCartBadge();
+    } catch (err) {
+      console.error(err);
+      showToast('Lỗi khi tải đơn hàng: ' + err.message, 'error');
+    }
   }
 
   /* ── Render Orders ──────────────────────── */
   function renderOrders() {
-    let orders = seedDemoOrders();
-    // Re-read in case of updates
-    orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-
     // Counts
-    const counts = { all: orders.length, pending: 0, shipping: 0, delivered: 0, cancelled: 0 };
-    orders.forEach(o => { if (counts[o.status] !== undefined) counts[o.status]++; });
+    const counts = { all: allOrders.length, pending: 0, shipping: 0, delivered: 0, cancelled: 0 };
+    allOrders.forEach(o => {
+      let mappedStatus = o.status;
+      if (mappedStatus === 'confirmed') mappedStatus = 'pending';
+      if (counts[mappedStatus] !== undefined) counts[mappedStatus]++;
+    });
+    
     document.getElementById('countAll').textContent       = counts.all;
     document.getElementById('countPending').textContent    = counts.pending;
     document.getElementById('countShipping').textContent   = counts.shipping;
@@ -304,7 +288,12 @@
     document.getElementById('countCancelled').textContent  = counts.cancelled;
 
     // Filter
-    const filtered = currentFilter === 'all' ? orders : orders.filter(o => o.status === currentFilter);
+    const filtered = currentFilter === 'all'
+      ? allOrders
+      : allOrders.filter(o => {
+          if (currentFilter === 'pending' && o.status === 'confirmed') return true;
+          return o.status === currentFilter;
+        });
 
     const listEl = document.getElementById('ordersList');
     const emptyEl = document.getElementById('emptyOrders');
@@ -319,16 +308,25 @@
 
     listEl.innerHTML = filtered.map(order => {
       const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
-      const itemsHtml = order.items.map(item => `
-        <div class="order-product">
-          <div class="order-product-img" style="background:${item.bg || '#F5F5F5'}">${item.icon || '📦'}</div>
-          <div class="order-product-info">
-            <div class="order-product-name">${item.name}</div>
-            <div class="order-product-qty">SL: ${item.quantity}</div>
+      const dateStr = new Date(order.created_at).toLocaleDateString('vi-VN') + ' ' + new Date(order.created_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+      
+      const itemsHtml = order.items.map(item => {
+        const thumbContent = item.product_image
+          ? `<img src="${getProductImageSrc({ image_url: item.product_image })}" alt="${item.product_name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${item.product_icon || '📦'}'">`
+          : (item.product_icon || '📦');
+        const bgStyle = item.product_image ? 'background:#fff;' : `background:${item.product_bg || '#F5F5F5'};`;
+
+        return `
+          <div class="order-product" style="cursor:pointer;" onclick="location.href='product-detail.html?id=${item.product_id}'">
+            <div class="order-product-img" style="${bgStyle}">${thumbContent}</div>
+            <div class="order-product-info">
+              <div class="order-product-name">${item.product_name}</div>
+              <div class="order-product-qty">SL: ${item.quantity}</div>
+            </div>
+            <div class="order-product-price">${formatPrice(item.price * item.quantity)}</div>
           </div>
-          <div class="order-product-price">${formatPrice(item.price * item.quantity)}</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       const canCancel = order.status === 'pending';
 
@@ -337,7 +335,7 @@
           <div class="order-card-header">
             <div>
               <span class="order-id">Đơn hàng #${order.id}</span>
-              <span class="order-date" style="margin-left:10px;">${order.date}</span>
+              <span class="order-date" style="margin-left:10px;">${dateStr}</span>
             </div>
             <span class="badge ${st.badge}">${st.icon} ${st.label}</span>
           </div>
@@ -351,7 +349,7 @@
           </div>
           <div class="order-detail-row" style="padding-bottom:4px;">
             <span class="odr-label">Thanh toán:</span>
-            <span>${order.payment}</span>
+            <span>${order.payment_method}</span>
           </div>
           <div class="order-card-body">${itemsHtml}</div>
           <div class="order-card-footer">
@@ -360,9 +358,9 @@
               <span class="order-total-value">${formatPrice(order.total)}</span>
             </div>
             <div class="order-footer-actions">
-              ${canCancel ? `<button class="btn btn-sm" style="color:#e53e3e;border:1px solid #e53e3e;" onclick="cancelOrder('${order.id}')">Hủy đơn</button>` : ''}
-              ${order.status === 'delivered' ? `<button class="btn btn-sm btn-primary" onclick="showToast('Cảm ơn bạn đã đánh giá!','success')">⭐ Đánh giá</button>` : ''}
-              <button class="btn btn-sm btn-outline" onclick="reorder('${order.id}')">🔄 Mua lại</button>
+              ${canCancel ? `<button class="btn btn-sm" style="color:#e53e3e;border:1px solid #e53e3e;" onclick="cancelOrder(${order.id})">Hủy đơn</button>` : ''}
+              ${order.status === 'delivered' ? `<button class="btn btn-sm btn-primary" onclick="showReviewModal(${order.id})">⭐ Đánh giá</button>` : ''}
+              <button class="btn btn-sm btn-outline" onclick="reorder(${order.id})">🔄 Mua lại</button>
             </div>
           </div>
         </div>
@@ -379,25 +377,60 @@
   }
 
   /* ── Cancel Order ───────────────────────── */
-  function cancelOrder(id) {
-    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-    const order = orders.find(o => o.id === id);
-    if (order && order.status === 'pending') {
-      order.status = 'cancelled';
-      localStorage.setItem('sn_orders', JSON.stringify(orders));
-      showToast('Đã hủy đơn hàng #' + id, 'info');
-      renderOrders();
+  async function cancelOrder(id) {
+    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return;
+    try {
+      await orderAPI.cancel(id);
+      showToast('Đã hủy đơn hàng thành công', 'info');
+      loadOrders();
+    } catch (err) {
+      showToast('Lỗi hủy đơn hàng: ' + err.message, 'error');
     }
   }
 
   /* ── Reorder ────────────────────────────── */
-  function reorder(id) {
-    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-    const order = orders.find(o => o.id === id);
-    if (order) {
-      order.items.forEach(item => CartLocal.add(item, item.quantity));
+  async function reorder(id) {
+    const order = allOrders.find(o => o.id === id);
+    if (!order) return;
+    try {
+      for (const item of order.items) {
+        if (item.product_id) {
+          await cartAPI.add(item.product_id, item.quantity);
+        }
+      }
       showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+      updateCartBadge();
+    } catch (err) {
+      showToast('Lỗi khi mua lại: ' + err.message, 'error');
     }
+  }
+
+  /* ── Review Modal ───────────────────────── */
+  function showReviewModal(orderId) {
+    const text = prompt('Nhập đánh giá của bạn về sản phẩm (1-5 sao):', '5');
+    if (text === null) return;
+    const rating = parseInt(text);
+    if (isNaN(rating) || rating < 1 || rating > 5) {
+      showToast('Đánh giá không hợp lệ, vui lòng chọn từ 1 đến 5 sao', 'error');
+      return;
+    }
+    const comment = prompt('Nhập nhận xét của bạn:');
+    
+    // Find first product in order to review
+    const order = allOrders.find(o => o.id === orderId);
+    const productId = order?.items[0]?.product_id;
+    if (!productId) {
+      showToast('Sản phẩm đã bị xóa hoặc không hợp lệ', 'error');
+      return;
+    }
+
+    reviewAPI.create({ productId, rating, text: comment })
+      .then(() => {
+        showToast('Cảm ơn bạn đã đánh giá sản phẩm! ⭐', 'success');
+      })
+      .catch(err => {
+        showToast('Lỗi gửi đánh giá: ' + err.message, 'error');
+      });
   }
 
   /* ── Search ─────────────────────────────── */
@@ -410,6 +443,7 @@
   });
 
   /* ── Navbar username ────────────────────── */
+  /* ── Navbar username ────────────────────── */
   const user = Auth.getUser();
   if (user) {
     const el = document.getElementById('navUserName');
@@ -417,7 +451,7 @@
   }
 
   /* ── Init ───────────────────────────────── */
-  renderOrders();
+  loadOrders();
   </script>
 </body>
 </html>

@@ -324,104 +324,87 @@
   <script src="../js/api.js"></script>
   <script>
   /* ============================================
-     Admin Users Script
+     Admin Users Script — API Connected
   ============================================ */
 
-  const STORAGE_KEY = 'sn_admin_users';
+  // Auth check
+  if (!Auth.requireAdmin()) { /* redirected */ }
+
   const PER_PAGE = 10;
   let currentPage = 1;
 
-  /* ── Users Store ────────────────────────── */
-  function getUsers() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
+  /* ── Load Users from API ───────────────────── */
+  async function loadUsers() {
+    try {
+      const params = { page: currentPage, limit: PER_PAGE };
 
-    const defaults = [
-      { id:1, name:'Admin ShopNest',     email:'admin@shopnest.vn',       phone:'0901000000', role:'admin', status:'active', avatar:'👑', address:'TP. Hồ Chí Minh', orders:0,   joined:'01/01/2024' },
-      { id:2, name:'Trần Minh Tuấn',     email:'tuan.tran@gmail.com',     phone:'0901111222', role:'user',  status:'active', avatar:'👨', address:'Q.1, TP.HCM',     orders:5,   joined:'15/02/2024' },
-      { id:3, name:'Nguyễn Thị Lan',     email:'lan.nguyen@gmail.com',    phone:'0903334455', role:'user',  status:'active', avatar:'👩', address:'Q.7, TP.HCM',     orders:12,  joined:'20/02/2024' },
-      { id:4, name:'Phạm Văn Đức',       email:'duc.pham@yahoo.com',      phone:'0905556677', role:'user',  status:'active', avatar:'👨', address:'Q.10, TP.HCM',    orders:3,   joined:'01/03/2024' },
-      { id:5, name:'Lê Hoàng Nam',       email:'nam.le@hotmail.com',      phone:'0907778899', role:'user',  status:'active', avatar:'👨', address:'Q.3, TP.HCM',     orders:8,   joined:'05/03/2024' },
-      { id:6, name:'Đỗ Thu Hà',          email:'ha.do@gmail.com',         phone:'0909990011', role:'user',  status:'active', avatar:'👩', address:'Q.5, TP.HCM',     orders:15,  joined:'10/03/2024' },
-      { id:7, name:'Vũ Quang Huy',       email:'huy.vu@gmail.com',        phone:'0901122334', role:'user',  status:'blocked',avatar:'👨', address:'Q.1, TP.HCM',     orders:2,   joined:'12/03/2024' },
-      { id:8, name:'Hoàng Thị Mai',      email:'mai.hoang@gmail.com',     phone:'0903344556', role:'user',  status:'active', avatar:'👩', address:'Bình Thạnh, HCM', orders:7,   joined:'18/03/2024' },
-      { id:9, name:'Bùi Thanh Tùng',     email:'tung.bui@outlook.com',    phone:'0905566778', role:'user',  status:'active', avatar:'👨', address:'Thủ Đức, HCM',    orders:4,   joined:'25/03/2024' },
-      { id:10,name:'Ngô Minh Châu',      email:'chau.ngo@gmail.com',      phone:'0907788990', role:'user',  status:'active', avatar:'👩', address:'Q.2, TP.HCM',     orders:9,   joined:'01/04/2024' },
-      { id:11,name:'Trịnh Văn Long',     email:'long.trinh@gmail.com',    phone:'0901234567', role:'user',  status:'blocked',avatar:'👨', address:'Gò Vấp, HCM',     orders:1,   joined:'05/04/2024' },
-      { id:12,name:'Lý Thị Kim Ngân',    email:'ngan.ly@yahoo.com',       phone:'0909876543', role:'user',  status:'active', avatar:'👩', address:'Tân Bình, HCM',   orders:6,   joined:'10/04/2024' },
-      { id:13,name:'Đặng Quốc Bảo',      email:'bao.dang@gmail.com',      phone:'0903456789', role:'user',  status:'active', avatar:'👨', address:'Q.9, TP.HCM',     orders:11,  joined:'15/04/2024' },
-      { id:14,name:'Phan Thùy Linh',     email:'linh.phan@gmail.com',     phone:'0907654321', role:'user',  status:'active', avatar:'👩', address:'Phú Nhuận, HCM',  orders:3,   joined:'20/04/2024' },
-      { id:15,name:'Mod ShopNest',        email:'mod@shopnest.vn',         phone:'0901000001', role:'admin', status:'active', avatar:'👑', address:'TP. Hồ Chí Minh', orders:0,   joined:'01/01/2024' },
-    ];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
-    return defaults;
+      const q = document.getElementById('userSearch').value.trim();
+      if (q) params.search = q;
+
+      const data = await GET('/admin/users?' + new URLSearchParams(params), true);
+      const users = data.users || [];
+
+      // Stats
+      const allData = await GET('/admin/users?' + new URLSearchParams({ limit: 1000 }), true);
+      const allUsers = allData.users || [];
+      document.getElementById('statTotal').textContent   = allUsers.length;
+      document.getElementById('statActive').textContent  = allUsers.filter(u => !u.is_blocked).length;
+      document.getElementById('statAdmin').textContent   = allUsers.filter(u => u.role === 'admin').length;
+      document.getElementById('statBlocked').textContent = allUsers.filter(u => u.is_blocked).length;
+
+      renderUsers(users, data.totalPages || 1);
+    } catch (err) {
+      console.error('Load users error:', err);
+      showToast('Lỗi tải người dùng: ' + err.message, 'error');
+    }
   }
 
-  function saveUsers(users) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-  }
-
-  /* ── Render ─────────────────────────────── */
-  function renderUsers() {
-    let users = getUsers();
-
-    // Stats
-    document.getElementById('statTotal').textContent   = users.length;
-    document.getElementById('statActive').textContent  = users.filter(u => u.status === 'active').length;
-    document.getElementById('statAdmin').textContent   = users.filter(u => u.role === 'admin').length;
-    document.getElementById('statBlocked').textContent = users.filter(u => u.status === 'blocked').length;
-
-    // Search filter
-    const q = document.getElementById('userSearch').value.trim().toLowerCase();
-    if (q) users = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-
-    // Role filter
+  /* ── Apply filters locally then reload ─────── */
+  function renderUsers(users, totalPages) {
+    // Client-side role/status filter
     const role = document.getElementById('roleFilter').value;
     if (role) users = users.filter(u => u.role === role);
-
-    // Status filter
     const status = document.getElementById('statusFilter').value;
-    if (status) users = users.filter(u => u.status === status);
+    if (status === 'active')  users = users.filter(u => !u.is_blocked);
+    if (status === 'blocked') users = users.filter(u => u.is_blocked);
 
     document.getElementById('showingCount').textContent = `${users.length} người dùng`;
 
-    // Pagination
-    const totalPages = Math.ceil(users.length / PER_PAGE);
-    const start = (currentPage - 1) * PER_PAGE;
-    const pageUsers = users.slice(start, start + PER_PAGE);
-
     // Render table
-    document.getElementById('usersTableBody').innerHTML = pageUsers.map(u => {
-      const isBlocked = u.status === 'blocked';
+    document.getElementById('usersTableBody').innerHTML = users.map(u => {
+      const isBlocked = u.is_blocked;
       const isAdmin = u.role === 'admin';
+      const date = new Date(u.created_at).toLocaleDateString('vi-VN');
+      const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
+      const avatar = isAdmin ? '👑' : (initial);
 
       return `
         <tr style="${isBlocked ? 'opacity:.6;' : ''}">
           <td style="color:var(--text-muted);font-weight:600;">#${u.id}</td>
           <td>
             <div class="user-avatar-cell">
-              <div class="user-avatar" style="background:${isAdmin ? '#DBEAFE' : 'var(--primary-light)'};">${u.avatar}</div>
+              <div class="user-avatar" style="background:${isAdmin ? '#DBEAFE' : 'var(--primary-light)'};">${avatar}</div>
               <div>
                 <div class="user-name">${u.name}</div>
                 <div class="user-email">${u.email}</div>
               </div>
             </div>
           </td>
-          <td style="color:var(--text-muted);">${u.phone}</td>
+          <td style="color:var(--text-muted);">${u.phone || '—'}</td>
           <td><span class="role-badge ${isAdmin ? 'role-admin' : 'role-user'}">${isAdmin ? '👑 Admin' : '👤 User'}</span></td>
           <td>
-            <span class="status-dot ${u.status}">
+            <span class="status-dot ${isBlocked ? 'blocked' : 'active'}">
               ${isBlocked ? 'Đã chặn' : 'Hoạt động'}
             </span>
           </td>
-          <td>${u.orders}</td>
-          <td style="color:var(--text-muted);font-size:12px;">${u.joined}</td>
+          <td>—</td>
+          <td style="color:var(--text-muted);font-size:12px;">${date}</td>
           <td>
             <div class="action-btns">
-              <button class="action-btn" onclick="viewUser(${u.id})" title="Xem chi tiết">👁️</button>
-              ${!isAdmin ? (isBlocked 
-                ? `<button class="action-btn success" onclick="toggleBlock(${u.id})" title="Bỏ chặn">✅ Bỏ chặn</button>`
-                : `<button class="action-btn danger" onclick="toggleBlock(${u.id})" title="Chặn">🚫 Chặn</button>`
+              <button class="action-btn" onclick="viewUser(${u.id}, '${u.name.replace(/'/g, "\\'")}', '${u.email}', '${u.phone || ''}', '${u.role}', ${u.is_blocked}, '${date}')" title="Xem chi tiết">👁️</button>
+              ${!isAdmin ? (isBlocked
+                ? `<button class="action-btn success" onclick="toggleBlock(${u.id}, '${u.name.replace(/'/g, "\\'")}')" title="Bỏ chặn">✅ Bỏ chặn</button>`
+                : `<button class="action-btn danger" onclick="toggleBlock(${u.id}, '${u.name.replace(/'/g, "\\'")}')" title="Chặn">🚫 Chặn</button>`
               ) : ''}
             </div>
           </td>
@@ -442,45 +425,39 @@
     el.innerHTML = html;
   }
 
-  function goPage(p) { currentPage = p; renderUsers(); }
+  function goPage(p) { currentPage = p; loadUsers(); }
 
-  /* ── Toggle Block ───────────────────────── */
-  function toggleBlock(userId) {
-    const users = getUsers();
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
+  /* ── Toggle Block via API ──────────────────── */
+  async function toggleBlock(userId, userName) {
+    if (!confirm(`Chặn/Bỏ chặn người dùng "${userName}"?`)) return;
 
-    const newStatus = user.status === 'blocked' ? 'active' : 'blocked';
-    const action = newStatus === 'blocked' ? 'Chặn' : 'Bỏ chặn';
-    if (!confirm(`${action} người dùng "${user.name}"?`)) return;
-
-    user.status = newStatus;
-    saveUsers(users);
-    showToast(`${action} thành công: ${user.name}`, newStatus === 'blocked' ? 'error' : 'success');
-    renderUsers();
+    try {
+      const data = await PUT(`/admin/users/${userId}/block`, {}, true);
+      showToast(data.message, data.user.is_blocked ? 'error' : 'success');
+      loadUsers();
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+    }
   }
 
-  /* ── View User Detail ───────────────────── */
-  function viewUser(userId) {
-    const users = getUsers();
-    const u = users.find(x => x.id === userId);
-    if (!u) return;
+  /* ── View User Detail ──────────────────────── */
+  function viewUser(id, name, email, phone, role, isBlocked, date) {
+    const isAdmin = role === 'admin';
+    const avatar = isAdmin ? '👑' : name.charAt(0).toUpperCase();
 
     document.getElementById('userModalBody').innerHTML = `
       <div class="user-detail-card">
-        <div class="user-detail-avatar">${u.avatar}</div>
-        <div class="user-detail-name">${u.name}</div>
-        <div class="user-detail-email">${u.email}</div>
+        <div class="user-detail-avatar">${avatar}</div>
+        <div class="user-detail-name">${name}</div>
+        <div class="user-detail-email">${email}</div>
         <div style="margin-top:8px;">
-          <span class="role-badge ${u.role === 'admin' ? 'role-admin' : 'role-user'}">${u.role === 'admin' ? '👑 Admin' : '👤 User'}</span>
-          <span class="status-dot ${u.status}" style="margin-left:10px;">${u.status === 'blocked' ? 'Đã chặn' : 'Hoạt động'}</span>
+          <span class="role-badge ${isAdmin ? 'role-admin' : 'role-user'}">${isAdmin ? '👑 Admin' : '👤 User'}</span>
+          <span class="status-dot ${isBlocked ? 'blocked' : 'active'}" style="margin-left:10px;">${isBlocked ? 'Đã chặn' : 'Hoạt động'}</span>
         </div>
       </div>
-      <div class="user-detail-row"><span class="udr-label">ID</span><span class="udr-value">#${u.id}</span></div>
-      <div class="user-detail-row"><span class="udr-label">Số điện thoại</span><span class="udr-value">${u.phone}</span></div>
-      <div class="user-detail-row"><span class="udr-label">Địa chỉ</span><span class="udr-value">${u.address}</span></div>
-      <div class="user-detail-row"><span class="udr-label">Số đơn hàng</span><span class="udr-value">${u.orders}</span></div>
-      <div class="user-detail-row"><span class="udr-label">Ngày tham gia</span><span class="udr-value">${u.joined}</span></div>
+      <div class="user-detail-row"><span class="udr-label">ID</span><span class="udr-value">#${id}</span></div>
+      <div class="user-detail-row"><span class="udr-label">Số điện thoại</span><span class="udr-value">${phone || '—'}</span></div>
+      <div class="user-detail-row"><span class="udr-label">Ngày tham gia</span><span class="udr-value">${date}</span></div>
     `;
 
     document.getElementById('userModal').classList.add('active');
@@ -494,15 +471,20 @@
     if (e.target === e.currentTarget) closeModal();
   });
 
-  /* ── Navbar ─────────────────────────────── */
+  /* ── Navbar ─────────────────────────────────── */
   const user = Auth.getUser();
   if (user) {
     const el = document.getElementById('navUserName');
     if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
   }
 
-  /* ── Init ───────────────────────────────── */
-  renderUsers();
+  /* ── Init ───────────────────────────────────── */
+  loadUsers();
+
+  // Filters trigger reload
+  document.getElementById('userSearch').addEventListener('input', () => { currentPage = 1; loadUsers(); });
+  document.getElementById('roleFilter').addEventListener('change', () => { currentPage = 1; loadUsers(); });
+  document.getElementById('statusFilter').addEventListener('change', () => { currentPage = 1; loadUsers(); });
   </script>
 </body>
 </html>

@@ -43,6 +43,12 @@
       justify-content: center;
       font-size: 22px;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+    .product-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .product-cell {
       display: flex;
@@ -89,7 +95,7 @@
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-lg);
       width: 100%;
-      max-width: 560px;
+      max-width: 600px;
       max-height: 90vh;
       overflow-y: auto;
       transform: translateY(20px);
@@ -143,6 +149,82 @@
       cursor: pointer;
     }
     .cat-select:focus { border-color: var(--primary); }
+
+    /* Image Upload Area */
+    .image-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--bg-page);
+      position: relative;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .image-upload-area:hover {
+      border-color: var(--primary);
+      background: rgba(238,77,45,0.04);
+    }
+    .image-upload-area.dragover {
+      border-color: var(--primary);
+      background: rgba(238,77,45,0.08);
+      transform: scale(1.01);
+    }
+    .image-upload-area.has-image {
+      padding: 12px;
+    }
+    .image-upload-icon { font-size: 36px; opacity: 0.6; }
+    .image-upload-text { font-size: 13px; color: var(--text-muted); }
+    .image-upload-text strong { color: var(--primary); }
+    .image-preview {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: var(--radius-md);
+      object-fit: contain;
+    }
+    .image-upload-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(229,62,62,0.9);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .image-upload-remove:hover {
+      background: #e53e3e;
+      transform: scale(1.1);
+    }
+    .upload-progress {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .upload-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #FF8C42);
+      border-radius: 2px;
+      transition: width 0.3s;
+      width: 0%;
+    }
   </style>
 </head>
 <body>
@@ -201,13 +283,6 @@
           <input type="text" id="productSearch" placeholder="🔍 Tìm sản phẩm..." oninput="filterProducts()" />
           <select class="cat-select" id="catFilter" onchange="filterProducts()" style="max-width:160px;">
             <option value="">Tất cả danh mục</option>
-            <option value="dien-tu">📱 Điện tử</option>
-            <option value="thoi-trang">👗 Thời trang</option>
-            <option value="gia-dung">🏠 Gia dụng</option>
-            <option value="sach">📚 Sách</option>
-            <option value="the-thao">⚽ Thể thao</option>
-            <option value="lam-dep">💄 Làm đẹp</option>
-            <option value="thuc-pham">🍎 Thực phẩm</option>
           </select>
         </div>
         <div class="toolbar-actions">
@@ -254,7 +329,7 @@
                 <th>Sản phẩm</th>
                 <th>Giá bán</th>
                 <th>Giá gốc</th>
-                <th>Đánh giá</th>
+                <th>Tồn kho</th>
                 <th>Đã bán</th>
                 <th>Danh mục</th>
                 <th>Thao tác</th>
@@ -281,6 +356,21 @@
       </div>
       <div class="modal-body">
         <form id="productForm" novalidate>
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label class="form-label">Ảnh sản phẩm</label>
+            <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageInput').click()">
+              <span class="image-upload-icon">📸</span>
+              <span class="image-upload-text">Kéo thả ảnh vào đây hoặc <strong>chọn file</strong></span>
+              <span class="image-upload-text">JPG, PNG, GIF, WebP — Tối đa 5MB</span>
+            </div>
+            <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" />
+            <div id="uploadProgress" class="upload-progress" style="display:none">
+              <div class="upload-progress-bar" id="uploadProgressBar"></div>
+            </div>
+            <div class="form-error" id="mImageError"></div>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="mName">Tên sản phẩm *</label>
             <input class="form-control" type="text" id="mName" placeholder="iPhone 15 Pro Max..." />
@@ -302,13 +392,6 @@
               <label class="form-label" for="mCat">Danh mục *</label>
               <select class="cat-select" id="mCat">
                 <option value="">Chọn danh mục</option>
-                <option value="dien-tu">📱 Điện tử</option>
-                <option value="thoi-trang">👗 Thời trang</option>
-                <option value="gia-dung">🏠 Gia dụng</option>
-                <option value="sach">📚 Sách</option>
-                <option value="the-thao">⚽ Thể thao</option>
-                <option value="lam-dep">💄 Làm đẹp</option>
-                <option value="thuc-pham">🍎 Thực phẩm</option>
               </select>
               <div class="form-error" id="mCatError"></div>
             </div>
@@ -317,9 +400,19 @@
               <input class="form-control" type="text" id="mIcon" placeholder="📱" maxlength="4" />
             </div>
           </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="mBg">Màu nền (hex)</label>
+              <input class="form-control" type="text" id="mBg" placeholder="#E8F4FD" value="#E8F4FD" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mStock">Số lượng tồn kho</label>
+              <input class="form-control" type="number" id="mStock" placeholder="100" min="0" value="100" />
+            </div>
+          </div>
           <div class="form-group">
-            <label class="form-label" for="mBg">Màu nền (hex)</label>
-            <input class="form-control" type="text" id="mBg" placeholder="#E8F4FD" value="#E8F4FD" />
+            <label class="form-label" for="mDesc">Mô tả sản phẩm</label>
+            <textarea class="form-control" id="mDesc" rows="3" placeholder="Mô tả sản phẩm..." style="resize:vertical;"></textarea>
           </div>
         </form>
       </div>
@@ -333,106 +426,192 @@
   <script src="../js/api.js"></script>
   <script>
   /* ============================================
-     Admin Products Script
+     Admin Products Script — API Connected + Image Upload
   ============================================ */
 
-  const CAT_NAMES = {
-    'dien-tu':'Điện tử','thoi-trang':'Thời trang','gia-dung':'Gia dụng',
-    'sach':'Sách','the-thao':'Thể thao','lam-dep':'Làm đẹp','thuc-pham':'Thực phẩm',
-  };
-  const CAT_ICONS = {
-    'dien-tu':'📱','thoi-trang':'👗','gia-dung':'🏠',
-    'sach':'📚','the-thao':'⚽','lam-dep':'💄','thuc-pham':'🍎',
-  };
+  // Auth check
+  if (!Auth.requireAdmin()) { /* redirected */ }
 
-  /* ── Products Store ─────────────────────── */
-  const STORAGE_KEY = 'sn_admin_products';
-
-  function getProducts() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-
-    // Seed default
-    const defaults = [
-      { id:1,  name:'iPhone 15 Pro Max 256GB',      price:29990000, original:33990000, rating:4.8, sold:1243, cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
-      { id:2,  name:'Samsung Galaxy S24 Ultra',      price:24990000, original:27990000, rating:4.7, sold:987,  cat:'dien-tu',   icon:'📱', bg:'#EDE7F6'  },
-      { id:3,  name:'Áo thun nam Polo Premium',      price:299000,   original:450000,   rating:4.5, sold:3421, cat:'thoi-trang',icon:'👕', bg:'#FEF9EF'  },
-      { id:4,  name:'Tai nghe Sony WH-1000XM5',     price:6990000,  original:8990000,  rating:4.9, sold:1543, cat:'dien-tu',   icon:'🎧', bg:'#FFF0F0'  },
-      { id:5,  name:'Nồi cơm điện Panasonic 1.8L',  price:890000,   original:1200000,  rating:4.9, sold:756,  cat:'gia-dung',  icon:'🍚', bg:'#FFF3E0'  },
-      { id:6,  name:'Bộ sách Đắc Nhân Tâm (Combo)', price:85000,    original:120000,   rating:4.8, sold:5632, cat:'sach',      icon:'📖', bg:'#F3E5F5'  },
-      { id:7,  name:'Giày thể thao Nike Air Max',   price:1890000,  original:2500000,  rating:4.7, sold:1876, cat:'the-thao',  icon:'👟', bg:'#E8F5E9'  },
-      { id:8,  name:'Kem dưỡng da Innisfree 50ml',  price:220000,   original:320000,   rating:4.6, sold:4231, cat:'lam-dep',   icon:'🧴', bg:'#FCE4EC'  },
-      { id:9,  name:'Laptop Asus VivoBook 15 2024', price:13990000, original:16990000, rating:4.5, sold:432,  cat:'dien-tu',   icon:'💻', bg:'#E3F2FD'  },
-      { id:10, name:'Quần jean nữ Skinny Hàn Quốc', price:389000,   original:520000,   rating:4.6, sold:2108, cat:'thoi-trang',icon:'👖', bg:'#E0F7FA'  },
-      { id:11, name:'Máy xay sinh tố Philips 750W', price:1290000,  original:1890000,  rating:4.7, sold:654,  cat:'gia-dung',  icon:'🫙', bg:'#F1F8E9'  },
-      { id:12, name:'Váy hoa nữ Hàn Quốc Summer',  price:459000,   original:650000,   rating:4.5, sold:1876, cat:'thoi-trang',icon:'👗', bg:'#FCEEF8'  },
-      { id:13, name:'iPad Air M2 11 inch 128GB',    price:16990000, original:19990000, rating:4.8, sold:321,  cat:'dien-tu',   icon:'📱', bg:'#E8F4FD'  },
-      { id:14, name:'Bàn phím cơ Akko 3068B Plus',  price:1290000,  original:1690000,  rating:4.6, sold:876,  cat:'dien-tu',   icon:'⌨️', bg:'#F3E5F5'  },
-      { id:15, name:'Son môi MAC Powder Kiss',       price:480000,   original:650000,   rating:4.7, sold:3210, cat:'lam-dep',   icon:'💄', bg:'#FCE4EC'  },
-    ];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
-    return defaults;
-  }
-
-  function saveProducts(prods) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prods));
-  }
-
-  const PER_PAGE = 10;
+  let allProducts = [];
+  let allCategories = [];
   let currentPage = 1;
+  const PER_PAGE = 10;
   let editingId = null;
+  let currentImageUrl = '';
 
-  /* ── Render ─────────────────────────────── */
-  function renderProducts() {
-    let prods = getProducts();
+  /* ── Image Upload Handling ──────────────────── */
+  const imageUploadArea = document.getElementById('imageUploadArea');
+  const imageInput = document.getElementById('imageInput');
 
-    // Filter by search
-    const q = document.getElementById('productSearch').value.trim().toLowerCase();
-    if (q) prods = prods.filter(p => p.name.toLowerCase().includes(q));
+  // Drag & Drop
+  imageUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageUploadArea.classList.add('dragover');
+  });
+  imageUploadArea.addEventListener('dragleave', () => {
+    imageUploadArea.classList.remove('dragover');
+  });
+  imageUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    imageUploadArea.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleImageFile(file);
+  });
 
-    // Filter by category
-    const cat = document.getElementById('catFilter').value;
-    if (cat) prods = prods.filter(p => p.cat === cat);
+  // File input change
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleImageFile(file);
+  });
 
-    // Stats
-    const all = getProducts();
-    document.getElementById('totalProducts').textContent = all.length;
-    document.getElementById('activeProducts').textContent = all.length;
-    document.getElementById('showingCount').textContent = `Hiển thị ${prods.length} sản phẩm`;
+  function handleImageFile(file) {
+    // Validate
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      document.getElementById('mImageError').textContent = 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP)';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      document.getElementById('mImageError').textContent = 'File ảnh tối đa 5MB';
+      return;
+    }
+    document.getElementById('mImageError').textContent = '';
 
-    // Pagination
-    const totalPages = Math.ceil(prods.length / PER_PAGE);
-    const start = (currentPage - 1) * PER_PAGE;
-    const pageProds = prods.slice(start, start + PER_PAGE);
+    // Upload the image
+    uploadImage(file);
+  }
 
-    // Render table
-    document.getElementById('productsTableBody').innerHTML = pageProds.map(p => `
+  async function uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // Show progress
+    const progressDiv = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('uploadProgressBar');
+    progressDiv.style.display = 'block';
+    progressBar.style.width = '30%';
+
+    try {
+      progressBar.style.width = '60%';
+      const data = await productAPI.uploadImage(formData);
+      progressBar.style.width = '100%';
+
+      currentImageUrl = data.imageUrl;
+
+      // Show preview
+      showImagePreview(data.imageUrl);
+
+      setTimeout(() => {
+        progressDiv.style.display = 'none';
+        progressBar.style.width = '0%';
+      }, 500);
+
+      showToast('Upload ảnh thành công! 📸', 'success');
+    } catch (err) {
+      progressDiv.style.display = 'none';
+      progressBar.style.width = '0%';
+      document.getElementById('mImageError').textContent = 'Lỗi upload: ' + err.message;
+      showToast('Lỗi upload ảnh', 'error');
+    }
+  }
+
+  function showImagePreview(url) {
+    const area = document.getElementById('imageUploadArea');
+    area.classList.add('has-image');
+    area.innerHTML = `
+      <img src="${url}" class="image-preview" alt="Preview" />
+      <button type="button" class="image-upload-remove" onclick="removeImage(event)" title="Xóa ảnh">✕</button>
+    `;
+  }
+
+  function removeImage(e) {
+    e.stopPropagation();
+    currentImageUrl = '';
+    const area = document.getElementById('imageUploadArea');
+    area.classList.remove('has-image');
+    area.innerHTML = `
+      <span class="image-upload-icon">📸</span>
+      <span class="image-upload-text">Kéo thả ảnh vào đây hoặc <strong>chọn file</strong></span>
+      <span class="image-upload-text">JPG, PNG, GIF, WebP — Tối đa 5MB</span>
+    `;
+    imageInput.value = '';
+  }
+
+  /* ── Load Categories for dropdowns ─────────── */
+  async function loadCategories() {
+    try {
+      const data = await GET('/categories');
+      allCategories = data.categories || [];
+      const filterSel = document.getElementById('catFilter');
+      const modalSel  = document.getElementById('mCat');
+      filterSel.innerHTML = '<option value="">Tất cả danh mục</option>';
+      modalSel.innerHTML  = '<option value="">Chọn danh mục</option>';
+      allCategories.forEach(c => {
+        filterSel.innerHTML += `<option value="${c.slug}">${c.icon} ${c.name}</option>`;
+        modalSel.innerHTML  += `<option value="${c.id}">${c.icon} ${c.name}</option>`;
+      });
+    } catch (err) {
+      console.error('Load categories error:', err);
+    }
+  }
+
+  /* ── Load Products from API ────────────────── */
+  async function loadProducts() {
+    try {
+      const cat = document.getElementById('catFilter').value;
+      const search = document.getElementById('productSearch').value.trim();
+      const params = { page: currentPage, limit: PER_PAGE };
+      if (cat) params.category = cat;
+      if (search) params.search = search;
+
+      const data = await GET('/products?' + new URLSearchParams(params));
+      allProducts = data.products || [];
+
+      document.getElementById('totalProducts').textContent   = data.total || 0;
+      document.getElementById('activeProducts').textContent  = data.total || 0;
+      document.getElementById('categoryCount').textContent   = allCategories.length;
+      document.getElementById('showingCount').textContent     = `Hiển thị ${allProducts.length} / ${data.total} sản phẩm`;
+
+      renderTable(allProducts, data.totalPages || 1);
+    } catch (err) {
+      console.error('Load products error:', err);
+      showToast('Lỗi khi tải sản phẩm: ' + err.message, 'error');
+    }
+  }
+
+  /* ── Render Table ────────────────────────────── */
+  function renderTable(prods, totalPages) {
+    document.getElementById('productsTableBody').innerHTML = prods.map(p => {
+      const catName = p.category_name || '—';
+      const thumbContent = p.image_url
+        ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${p.icon || '📦'}'">`
+        : (p.icon || '📦');
+      return `
       <tr>
         <td style="color:var(--text-muted);font-weight:600;">#${p.id}</td>
         <td>
           <div class="product-cell">
-            <div class="product-thumb" style="background:${p.bg}">${p.icon}</div>
+            <div class="product-thumb" style="background:${p.image_url ? '#fff' : (p.bg_color || '#F5F5F5')}">${thumbContent}</div>
             <div>
               <div class="product-cell-name">${p.name}</div>
-              <div class="product-cell-cat">${CAT_ICONS[p.cat] || ''} ${CAT_NAMES[p.cat] || p.cat}</div>
+              <div class="product-cell-cat">${catName}</div>
             </div>
           </div>
         </td>
         <td style="font-weight:700;color:var(--primary);">${formatPrice(p.price)}</td>
-        <td style="color:var(--text-muted);text-decoration:line-through;">${formatPrice(p.original)}</td>
-        <td>⭐ ${p.rating}</td>
-        <td>${p.sold.toLocaleString()}</td>
-        <td><span class="badge badge-primary">${CAT_NAMES[p.cat] || p.cat}</span></td>
+        <td style="color:var(--text-muted);text-decoration:line-through;">${formatPrice(p.original_price)}</td>
+        <td>${(p.stock || 0).toLocaleString()}</td>
+        <td>${(p.sold || 0).toLocaleString()}</td>
+        <td><span class="badge badge-primary">${catName}</span></td>
         <td>
           <div class="action-btns">
             <button class="action-btn" onclick="editProduct(${p.id})" title="Sửa">✏️</button>
-            <button class="action-btn danger" onclick="deleteProduct(${p.id})" title="Xóa">🗑️</button>
+            <button class="action-btn danger" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')" title="Xóa">🗑️</button>
           </div>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
 
-    // Pagination
     renderPagination(totalPages);
   }
 
@@ -447,27 +626,53 @@
     el.innerHTML = html;
   }
 
-  function goPage(p) { currentPage = p; renderProducts(); }
-  function filterProducts() { currentPage = 1; renderProducts(); }
+  function goPage(p) { currentPage = p; loadProducts(); }
+  function filterProducts() { currentPage = 1; loadProducts(); }
 
-  /* ── Modal ──────────────────────────────── */
-  function openModal(id = null) {
+  /* ── Modal ──────────────────────────────────── */
+  async function openModal(id = null) {
     editingId = id;
+    currentImageUrl = '';
     const modal = document.getElementById('productModal');
     const form  = document.getElementById('productForm');
     form.reset();
     document.querySelectorAll('.form-error').forEach(e => e.textContent = '');
+    document.getElementById('mBg').value = '#E8F4FD';
+    document.getElementById('mStock').value = '100';
+    imageInput.value = '';
+
+    // Reset image upload area
+    const area = document.getElementById('imageUploadArea');
+    area.classList.remove('has-image');
+    area.innerHTML = `
+      <span class="image-upload-icon">📸</span>
+      <span class="image-upload-text">Kéo thả ảnh vào đây hoặc <strong>chọn file</strong></span>
+      <span class="image-upload-text">JPG, PNG, GIF, WebP — Tối đa 5MB</span>
+    `;
 
     if (id) {
-      const p = getProducts().find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('modalTitle').textContent = '✏️ Sửa sản phẩm';
-      document.getElementById('mName').value     = p.name;
-      document.getElementById('mPrice').value    = p.price;
-      document.getElementById('mOriginal').value = p.original;
-      document.getElementById('mCat').value      = p.cat;
-      document.getElementById('mIcon').value     = p.icon;
-      document.getElementById('mBg').value       = p.bg;
+      try {
+        const data = await GET(`/products/${id}`);
+        const p = data.product;
+        document.getElementById('modalTitle').textContent = '✏️ Sửa sản phẩm';
+        document.getElementById('mName').value     = p.name;
+        document.getElementById('mPrice').value    = p.price;
+        document.getElementById('mOriginal').value = p.original_price;
+        document.getElementById('mCat').value      = p.category_id || '';
+        document.getElementById('mIcon').value     = p.icon || '';
+        document.getElementById('mBg').value       = p.bg_color || '#E8F4FD';
+        document.getElementById('mStock').value    = p.stock || 0;
+        document.getElementById('mDesc').value     = p.description || '';
+
+        // Show existing image
+        if (p.image_url) {
+          currentImageUrl = p.image_url;
+          showImagePreview(p.image_url);
+        }
+      } catch (err) {
+        showToast('Lỗi tải sản phẩm: ' + err.message, 'error');
+        return;
+      }
     } else {
       document.getElementById('modalTitle').textContent = '➕ Thêm sản phẩm mới';
     }
@@ -478,74 +683,84 @@
   function closeModal() {
     document.getElementById('productModal').classList.remove('active');
     editingId = null;
+    currentImageUrl = '';
   }
 
   function editProduct(id) { openModal(id); }
 
-  /* ── Save ───────────────────────────────── */
-  function saveProduct() {
-    // Clear errors
+  /* ── Save (Create / Update) ────────────────── */
+  async function saveProduct() {
     ['mNameError','mPriceError','mCatError'].forEach(id => document.getElementById(id).textContent = '');
 
-    const name     = document.getElementById('mName').value.trim();
-    const price    = Number(document.getElementById('mPrice').value);
-    const original = Number(document.getElementById('mOriginal').value) || price * 1.2;
-    const cat      = document.getElementById('mCat').value;
-    const icon     = document.getElementById('mIcon').value.trim() || CAT_ICONS[cat] || '📦';
-    const bg       = document.getElementById('mBg').value.trim() || '#F5F5F5';
+    const name           = document.getElementById('mName').value.trim();
+    const price          = Number(document.getElementById('mPrice').value);
+    const original_price = Number(document.getElementById('mOriginal').value) || Math.round(price * 1.2);
+    const category_id    = Number(document.getElementById('mCat').value) || null;
+    const icon           = document.getElementById('mIcon').value.trim() || '📦';
+    const bg_color       = document.getElementById('mBg').value.trim() || '#F5F5F5';
+    const stock          = Number(document.getElementById('mStock').value) || 100;
+    const description    = document.getElementById('mDesc').value.trim();
     let valid = true;
 
     if (!name) { document.getElementById('mNameError').textContent = 'Vui lòng nhập tên sản phẩm'; valid = false; }
     if (!price || price <= 0) { document.getElementById('mPriceError').textContent = 'Giá phải lớn hơn 0'; valid = false; }
-    if (!cat) { document.getElementById('mCatError').textContent = 'Vui lòng chọn danh mục'; valid = false; }
+    if (!category_id) { document.getElementById('mCatError').textContent = 'Vui lòng chọn danh mục'; valid = false; }
     if (!valid) return;
 
-    const prods = getProducts();
+    const body = { name, price, original_price, category_id, icon, bg_color, stock, description, image_url: currentImageUrl };
+    const btn = document.getElementById('modalSaveBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang lưu...';
 
-    if (editingId) {
-      const idx = prods.findIndex(p => p.id === editingId);
-      if (idx >= 0) {
-        prods[idx] = { ...prods[idx], name, price, original, cat, icon, bg };
+    try {
+      if (editingId) {
+        await PUT(`/products/${editingId}`, body, true);
         showToast('Cập nhật sản phẩm thành công! ✅', 'success');
+      } else {
+        await POST('/products', body, true);
+        showToast('Thêm sản phẩm thành công! 🎉', 'success');
       }
-    } else {
-      const newId = Math.max(0, ...prods.map(p => p.id)) + 1;
-      prods.push({ id: newId, name, price, original, rating: 0, sold: 0, cat, icon, bg });
-      showToast('Thêm sản phẩm thành công! 🎉', 'success');
+      closeModal();
+      loadProducts();
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 Lưu';
     }
-
-    saveProducts(prods);
-    closeModal();
-    renderProducts();
   }
 
-  /* ── Delete ─────────────────────────────── */
-  function deleteProduct(id) {
-    const prods = getProducts();
-    const p = prods.find(x => x.id === id);
-    if (!p) return;
-    if (!confirm(`Xóa sản phẩm "${p.name}"?`)) return;
+  /* ── Delete ─────────────────────────────────── */
+  async function deleteProduct(id, name) {
+    if (!confirm(`Xóa sản phẩm "${name}"?`)) return;
 
-    const updated = prods.filter(x => x.id !== id);
-    saveProducts(updated);
-    showToast('Đã xóa sản phẩm', 'info');
-    renderProducts();
+    try {
+      await DELETE(`/products/${id}`, true);
+      showToast('Đã xóa sản phẩm', 'info');
+      loadProducts();
+    } catch (err) {
+      showToast('Lỗi xóa: ' + err.message, 'error');
+    }
   }
 
-  /* ── Close modal on overlay click ──────── */
+  /* ── Close modal on overlay click ──────────── */
   document.getElementById('productModal').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal();
   });
 
-  /* ── Navbar ─────────────────────────────── */
+  /* ── Navbar ─────────────────────────────────── */
   const user = Auth.getUser();
   if (user) {
     const el = document.getElementById('navUserName');
     if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
   }
 
-  /* ── Init ───────────────────────────────── */
-  renderProducts();
+  /* ── Init ───────────────────────────────────── */
+  (async () => {
+    await loadCategories();
+    await loadProducts();
+  })();
   </script>
+
 </body>
 </html>

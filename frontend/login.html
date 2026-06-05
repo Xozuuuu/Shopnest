@@ -75,7 +75,7 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Login Page Script
+     Login Page Script — Real API
   ============================================ */
 
   const form     = document.getElementById('loginForm');
@@ -135,33 +135,31 @@
 
     if (!valid) return;
 
-    /* ── Mock Login ───────────────────────── */
+    /* ── Real API Login ──────────────────── */
     const btn = document.getElementById('loginBtn');
     btn.disabled = true;
     btn.textContent = 'Đang đăng nhập...';
 
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 800));
+    try {
+      const data = await authAPI.login(email, pw);
 
-    // Mock: accept any valid email/password
-    const mockUser = {
-      id: 1,
-      name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      email: email,
-      phone: '0901234567',
-      address: 'TP. Hồ Chí Minh',
-      role: 'user',
-      avatar: '👤',
-      createdAt: new Date().toISOString(),
-    };
-    const mockToken = 'mock_token_' + Date.now();
+      Auth.save(data.token, data.user);
+      showToast('Đăng nhập thành công! 🎉', 'success');
 
-    Auth.save(mockToken, mockUser);
-    showToast('Đăng nhập thành công! 🎉', 'success');
-
-    setTimeout(() => {
-      location.href = 'index.html';
-    }, 600);
+      setTimeout(() => {
+        // Redirect admin to admin panel, user to homepage
+        if (data.user.role === 'admin') {
+          location.href = 'admin/dashboard.html';
+        } else {
+          location.href = 'index.html';
+        }
+      }, 600);
+    } catch (err) {
+      showToast(err.message || 'Đăng nhập thất bại', 'error');
+      pwErr.textContent = err.message || 'Email hoặc mật khẩu không đúng';
+      btn.disabled = false;
+      btn.textContent = 'Đăng nhập';
+    }
   });
 
   /* ── Redirect if already logged in ──────── */

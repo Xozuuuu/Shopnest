@@ -91,7 +91,7 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Register Page Script
+     Register Page Script — Real API
   ============================================ */
 
   const form      = document.getElementById('registerForm');
@@ -212,19 +212,28 @@
 
     if (!valid) return;
 
-    /* ── Mock Register ────────────────────── */
+    /* ── Real API Register ───────────────── */
     const btn = document.getElementById('registerBtn');
     btn.disabled = true;
     btn.textContent = 'Đang tạo tài khoản...';
 
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 1000));
+    try {
+      const data = await authAPI.register(name, email, pw);
 
-    showToast('Đăng ký thành công! 🎉 Hãy đăng nhập để bắt đầu', 'success');
+      showToast('Đăng ký thành công! 🎉 Chuyển đến đăng nhập...', 'success');
 
-    setTimeout(() => {
-      location.href = 'login.html';
-    }, 800);
+      setTimeout(() => {
+        location.href = 'login.html';
+      }, 1000);
+    } catch (err) {
+      showToast(err.message || 'Đăng ký thất bại', 'error');
+      if (err.message.includes('Email')) {
+        emailErr.textContent = err.message;
+        emailIn.classList.add('error');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Đăng ký';
+    }
   });
 
   /* ── Redirect if already logged in ──────── */

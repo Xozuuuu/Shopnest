@@ -331,46 +331,81 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Checkout Page Script
+     Checkout Page Script — API Connected
   ============================================ */
 
-  const cart = CartLocal.get();
+  // Auth check
+  if (!Auth.requireLogin()) { /* redirected */ }
 
-  /* ── Check cart not empty ───────────────── */
-  if (cart.length === 0) {
-    document.getElementById('checkoutForm').classList.add('hidden');
-    document.getElementById('emptyCheckout').classList.remove('hidden');
+  const user = Auth.getUser();
+  let cartItems = [];
+
+  /* ── Search ─────────────────────────────── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
   }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
 
   /* ── Pre-fill from user profile ─────────── */
-  const user = Auth.getUser();
   if (user) {
-    document.getElementById('coName').value    = user.name  || '';
-    document.getElementById('coPhone').value   = user.phone || '';
+    document.getElementById('coName').value     = user.name  || '';
+    document.getElementById('coPhone').value    = user.phone || '';
     document.getElementById('coAddress').value  = user.address || '';
     const el = document.getElementById('navUserName');
     if (el) el.textContent = user.name.split(' ').pop();
   }
 
-  /* ── Render Order Items ─────────────────── */
-  const subtotal = CartLocal.total();
-  const shipping = subtotal >= 300000 ? 0 : 30000;
-  const total    = subtotal + shipping;
+  /* ── Load Cart Data ─────────────────────── */
+  async function loadCheckoutData() {
+    try {
+      const data = await cartAPI.get();
+      cartItems = data.items || [];
 
-  document.getElementById('orderItems').innerHTML = cart.map(item => `
-    <div class="order-item">
-      <div class="order-item-img" style="background:${item.bg || '#F5F5F5'}">${item.icon || '📦'}</div>
-      <div class="order-item-info">
-        <div class="order-item-name">${item.name}</div>
-        <div class="order-item-qty">SL: ${item.quantity}</div>
-      </div>
-      <div class="order-item-price">${formatPrice(item.price * item.quantity)}</div>
-    </div>
-  `).join('');
+      if (cartItems.length === 0) {
+        document.getElementById('checkoutForm').classList.add('hidden');
+        document.getElementById('emptyCheckout').classList.remove('hidden');
+        return;
+      }
 
-  document.getElementById('coSubtotal').textContent = formatPrice(subtotal);
-  document.getElementById('coShipping').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
-  document.getElementById('coTotal').textContent    = formatPrice(total);
+      document.getElementById('checkoutForm').classList.remove('hidden');
+      document.getElementById('emptyCheckout').classList.add('hidden');
+
+      // Render items
+      document.getElementById('orderItems').innerHTML = cartItems.map(item => {
+        const thumbContent = item.image_url
+          ? `<img src="${getProductImageSrc(item)}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${item.icon || '📦'}'">`
+          : (item.icon || '📦');
+        const bgStyle = item.image_url ? 'background:#fff;' : `background:${item.bg || '#F5F5F5'};`;
+
+        return `
+          <div class="order-item">
+            <div class="order-item-img" style="${bgStyle}">${thumbContent}</div>
+            <div class="order-item-info">
+              <div class="order-item-name">${item.name}</div>
+              <div class="order-item-qty">SL: ${item.quantity}</div>
+            </div>
+            <div class="order-item-price">${formatPrice(item.price * item.quantity)}</div>
+          </div>
+        `;
+      }).join('');
+
+      const subtotal = data.total;
+      const shipping = subtotal >= 300000 ? 0 : 30000;
+      const total    = subtotal + shipping;
+
+      document.getElementById('coSubtotal').textContent = formatPrice(subtotal);
+      document.getElementById('coShipping').textContent = shipping === 0 ? 'Miễn phí' : formatPrice(shipping);
+      document.getElementById('coTotal').textContent    = formatPrice(total);
+
+      updateCartBadge();
+    } catch (err) {
+      console.error(err);
+      showToast('Lỗi khi tải giỏ hàng: ' + err.message, 'error');
+    }
+  }
 
   /* ── Payment Selection ──────────────────── */
   function selectPayment(el) {
@@ -420,45 +455,29 @@
 
     if (!valid) return;
 
-    /* ── Mock Order ───────────────────────── */
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled = true;
     btn.textContent = 'Đang xử lý...';
 
-    await new Promise(r => setTimeout(r, 1200));
+    try {
+      await orderAPI.create({ name, phone, address, note, payment });
+      showToast('Đặt hàng thành công! 🎉', 'success');
+      
+      // Clear local cart just in case
+      CartLocal.clear();
 
-    // Save mock order
-    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-    const paymentLabels = { cod: 'Thanh toán khi nhận hàng', bank: 'Chuyển khoản ngân hàng', ewallet: 'Ví điện tử' };
-    const order = {
-      id: 'SN' + Date.now().toString(36).toUpperCase(),
-      date: new Date().toLocaleDateString('vi-VN'),
-      items: cart,
-      subtotal, shipping, total,
-      status: 'pending',
-      name, phone, address, note,
-      payment: paymentLabels[payment] || payment,
-    };
-    orders.unshift(order);
-    localStorage.setItem('sn_orders', JSON.stringify(orders));
-
-    // Clear cart
-    CartLocal.clear();
-
-    showToast('Đặt hàng thành công! 🎉', 'success');
-    setTimeout(() => {
-      location.href = 'orders.html';
-    }, 800);
+      setTimeout(() => {
+        location.href = 'orders.html';
+      }, 800);
+    } catch (err) {
+      showToast('Lỗi đặt hàng: ' + err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Đặt hàng';
+    }
   });
 
-  /* ── Search ─────────────────────────────── */
-  function doSearch() {
-    const q = document.getElementById('searchInput').value.trim();
-    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
-  }
-  document.getElementById('searchInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doSearch();
-  });
+  /* ── Init ───────────────────────────────── */
+  loadCheckoutData();
   </script>
 </body>
 </html>

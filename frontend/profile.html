@@ -343,42 +343,60 @@
   <script src="js/api.js"></script>
   <script>
   /* ============================================
-     Profile Page Script
+     Profile Page Script — API Connected
   ============================================ */
 
-  /* ── Require Login ──────────────────────── */
-  if (!Auth.isLoggedIn()) {
-    location.href = 'login.html';
-  }
+  // Auth check
+  if (!Auth.requireLogin()) { /* redirected */ }
 
-  const user = Auth.getUser() || {};
+  let user = Auth.getUser() || {};
 
-  /* ── Load Profile ───────────────────────── */
-  function loadProfile() {
-    document.getElementById('sidebarAvatar').textContent  = user.avatar || '👤';
-    document.getElementById('sidebarName').textContent    = user.name || 'Người dùng';
-    document.getElementById('sidebarEmail').textContent   = user.email || '';
-    document.getElementById('profileAvatar').textContent  = user.avatar || '👤';
-    document.getElementById('profileGreeting').textContent = `Xin chào, ${user.name || 'bạn'}! 👋`;
+  /* ── Load Profile & Statistics ───────────── */
+  async function loadProfile() {
+    try {
+      // 1. Fetch latest user details from server
+      const meData = await authAPI.me();
+      user = meData.user;
+      Auth.save(Auth.getToken(), user); // Save updated details
 
-    document.getElementById('pfName').value    = user.name    || '';
-    document.getElementById('pfEmail').value   = user.email   || '';
-    document.getElementById('pfPhone').value   = user.phone   || '';
-    document.getElementById('pfAddress').value = user.address || '';
+      // 2. Render sidebar & greeting
+      const avatarIcon = user.role === 'admin' ? '👑' : '👤';
+      document.getElementById('sidebarAvatar').textContent  = avatarIcon;
+      document.getElementById('sidebarName').textContent    = user.name || 'Người dùng';
+      document.getElementById('sidebarEmail').textContent   = user.email || '';
+      document.getElementById('profileAvatar').textContent  = avatarIcon;
+      document.getElementById('profileGreeting').textContent = `Xin chào, ${user.name || 'bạn'}! 👋`;
 
-    // Stats
-    const orders = JSON.parse(localStorage.getItem('sn_orders') || '[]');
-    document.getElementById('statOrders').textContent = orders.length;
-    document.getElementById('statCart').textContent    = CartLocal.count();
+      // 3. Populate form fields
+      document.getElementById('pfName').value    = user.name    || '';
+      document.getElementById('pfEmail').value   = user.email   || '';
+      document.getElementById('pfPhone').value   = user.phone   || '';
+      document.getElementById('pfAddress').value = user.address || '';
 
-    if (user.createdAt) {
-      const d = new Date(user.createdAt);
-      document.getElementById('statJoined').textContent = d.toLocaleDateString('vi-VN');
+      // 4. Load Stats
+      // Orders
+      const orderData = await orderAPI.getAll();
+      document.getElementById('statOrders').textContent = orderData.orders.length;
+
+      // Cart Items
+      const cartData = await cartAPI.get();
+      document.getElementById('statCart').textContent = cartData.items.reduce((s, i) => s + i.quantity, 0);
+
+      // Joined Date
+      if (user.created_at) {
+        const d = new Date(user.created_at);
+        document.getElementById('statJoined').textContent = d.toLocaleDateString('vi-VN');
+      }
+
+      // Navbar
+      const el = document.getElementById('navUserName');
+      if (el) el.textContent = (user.name || '').split(' ').pop();
+
+      updateCartBadge();
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      showToast('Không thể tải thông tin hồ sơ: ' + err.message, 'error');
     }
-
-    // Navbar
-    const el = document.getElementById('navUserName');
-    if (el) el.textContent = (user.name || '').split(' ').pop();
   }
 
   /* ── Switch Tab ─────────────────────────── */
@@ -417,13 +435,13 @@
     }
     if (!valid) return;
 
-    // Update user in localStorage
-    const updated = { ...user, name, email, phone, address };
-    Auth.save(Auth.getToken(), updated);
-    Object.assign(user, updated);
-
-    showToast('Cập nhật hồ sơ thành công! ✅', 'success');
-    loadProfile();
+    try {
+      const res = await userAPI.updateProfile({ name, phone, address });
+      showToast('Cập nhật hồ sơ thành công! ✅', 'success');
+      loadProfile();
+    } catch (err) {
+      showToast('Lỗi cập nhật: ' + err.message, 'error');
+    }
   });
 
   /* ── Change Password ────────────────────── */
@@ -459,10 +477,15 @@
     }
     if (!valid) return;
 
-    // Mock password change
-    await new Promise(r => setTimeout(r, 500));
-    showToast('Đổi mật khẩu thành công! 🔒', 'success');
-    document.getElementById('passwordForm').reset();
+    try {
+      await userAPI.changePassword({ currentPassword: oldPw, newPassword: newPw });
+      showToast('Đổi mật khẩu thành công! 🔒', 'success');
+      document.getElementById('passwordForm').reset();
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+      document.getElementById('pwOldError').textContent = err.message;
+      document.getElementById('pwOld').classList.add('error');
+    }
   });
 
   /* ── Toggle Password ────────────────────── */
