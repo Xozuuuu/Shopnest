@@ -4,15 +4,12 @@
 
 /* ── Auto-detect API Base URL ────────────── */
 const API_BASE = (function() {
-  const BACKEND_PORT = 3000;
-  const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
-
-  // If frontend is served by the backend itself (http://localhost:3000/frontend/...)
-  if (isHttp && window.location.port == BACKEND_PORT) {
+  // Nếu mở qua HTTP/HTTPS (deployed hoặc localhost qua backend)
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     return window.location.origin + '/api';
   }
-  // Otherwise (file:// or different dev server like Live Server on port 5500)
-  return `http://localhost:${BACKEND_PORT}/api`;
+  // Fallback cho file:// (dev local mở file trực tiếp)
+  return 'http://localhost:3000/api';
 })();
 
 /* ── HTTP Helper ─────────────────────────── */

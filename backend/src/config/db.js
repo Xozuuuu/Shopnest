@@ -4,13 +4,19 @@
 
 const { Pool } = require('pg');
 
-const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
-  port:     process.env.DB_PORT     || 5432,
-  database: process.env.DB_NAME     || 'shopnest',
-  user:     process.env.DB_USER     || 'postgres',
-  password: process.env.DB_PASSWORD || '123456',
-});
+// Render cung cấp DATABASE_URL — ưu tiên dùng nếu có
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    })
+  : new Pool({
+      host:     process.env.DB_HOST     || 'localhost',
+      port:     process.env.DB_PORT     || 5432,
+      database: process.env.DB_NAME     || 'shopnest',
+      user:     process.env.DB_USER     || 'postgres',
+      password: process.env.DB_PASSWORD || '123456',
+    });
 
 // Test connection on startup
 pool.query('SELECT NOW()')
