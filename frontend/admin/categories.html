@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý danh mục — ShopNest Admin</title>
+  <meta name="description" content="Quản lý danh mục sản phẩm trên ShopNest — Thêm, sửa, xóa danh mục." />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    /* ── Categories Admin specific ──────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .toolbar-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .toolbar-search input {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      outline: none;
+    }
+    .toolbar-search input:focus { border-color: var(--primary); }
+    .toolbar-actions { display: flex; gap: 8px; }
+
+    .action-btns { display: flex; gap: 4px; }
+    .action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+    }
+    .action-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+    .action-btn.danger:hover { border-color: #e53e3e; background: #FEE2E2; }
+
+    /* Category Card Grid */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .cat-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .cat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), #FF8C42);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .cat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    .cat-card:hover::before { opacity: 1; }
+
+    .cat-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .cat-card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      background: linear-gradient(135deg, rgba(238,77,45,0.08), rgba(255,140,66,0.12));
+      flex-shrink: 0;
+    }
+    .cat-card-info { flex: 1; min-width: 0; }
+    .cat-card-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .cat-card-slug {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: monospace;
+      background: var(--bg-page);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+    .cat-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .cat-card-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .cat-card-count span {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state-text { font-size: 16px; margin-bottom: 8px; font-weight: 600; }
+    .empty-state-sub { font-size: 13px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all .25s;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--bg-white);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform .25s;
+    }
+    .modal-overlay.active .modal { transform: translateY(0); }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background var(--transition);
+      border: none;
+      background: none;
+    }
+    .modal-close:hover { background: var(--bg-page); }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Emoji Picker */
+    .icon-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-preview {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background: var(--bg-page);
+      transition: all 0.3s;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .icon-preview:hover { border-color: var(--primary); }
+    .icon-picker-input { flex: 1; }
+
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-top: 8px;
+      background: var(--bg-page);
+    }
+    .emoji-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: none;
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .emoji-btn:hover {
+      background: var(--primary-light);
+      transform: scale(1.2);
+    }
+    .emoji-btn.selected {
+      background: var(--primary-light);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    /* Slug preview */
+    .slug-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .slug-preview span {
+      background: var(--bg-page);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Confirm Delete Modal */
+    .delete-confirm {
+      text-align: center;
+      padding: 10px 0;
+    }
+    .delete-confirm-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .delete-confirm-text {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .delete-confirm-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .delete-confirm-warn {
+      font-size: 12px;
+      color: #e53e3e;
+      background: #FEE2E2;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      display: inline-block;
+    }
+
+    .btn-danger {
+      background: #e53e3e;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-danger:hover { background: #c53030; }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .view-toggle-btn {
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: var(--bg-white);
+      transition: all var(--transition);
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .view-toggle-btn:hover:not(.active) { background: var(--bg-page); }
+
+    /* Table view */
+    .cat-table-view { display: none; }
+    .cat-table-view.active { display: block; }
+    .cat-grid-view { display: grid; }
+    .cat-grid-view.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN NAVBAR                 ║
+       ╚══════════════════════════════════════╝ -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" placeholder="Tìm kiếm trong admin..." autocomplete="off" />
+        <button class="search-btn">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-btn" style="cursor:default;">
+          <span class="badge badge-primary" style="font-size:12px;">👑 Admin</span>
+        </span>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Admin</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="../index.html">🏠 Về trang chủ</a>
+            <a href="../profile.html">👤 Hồ sơ cá nhân</a>
+            <a href="#" id="logoutBtn" class="divider">🚪 Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║          ADMIN LAYOUT                 ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <a href="dashboard.html" class="admin-menu-item"><span>📊</span> Dashboard</a>
+      <a href="products.html" class="admin-menu-item"><span>📦</span> Sản phẩm</a>
+      <a href="categories.html" class="admin-menu-item active"><span>🏷️</span> Danh mục</a>
+      <a href="orders.html" class="admin-menu-item"><span>🛒</span> Đơn hàng</a>
+      <a href="users.html" class="admin-menu-item"><span>👥</span> Người dùng</a>
+      <div style="border-top:1px solid var(--border);margin:16px 0;"></div>
+      <a href="../index.html" class="admin-menu-item"><span>🏠</span> Về trang chủ</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <h1 class="admin-page-title">🏷️ Quản lý danh mục</h1>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-search">
+          <input type="text" id="catSearch" placeholder="🔍 Tìm danh mục..." oninput="filterCategories()" />
+        </div>
+        <div class="toolbar-actions">
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Dạng lưới">▦</button>
+            <button class="view-toggle-btn" id="tableViewBtn" onclick="setView('table')" title="Dạng bảng">☰</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal()">➕ Thêm danh mục</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card">
+          <div class="stat-icon orange">🏷️</div>
+          <div>
+            <div class="stat-value" id="totalCategories">0</div>
+            <div class="stat-label">Tổng danh mục</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">📦</div>
+          <div>
+            <div class="stat-value" id="totalProducts">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">📊</div>
+          <div>
+            <div class="stat-value" id="avgProducts">0</div>
+            <div class="stat-label">TB sản phẩm/danh mục</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid View -->
+      <div class="cat-grid cat-grid-view" id="catGrid"></div>
+
+      <!-- Table View -->
+      <div class="cat-table-view" id="catTableView">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Danh sách danh mục</span>
+            <span style="font-size:13px;color:var(--text-muted);" id="showingCount"></span>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Icon</th>
+                  <th>Tên danh mục</th>
+                  <th>Slug</th>
+                  <th>Số sản phẩm</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="catTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║       ADD / EDIT CATEGORY MODAL      ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="modal-overlay" id="categoryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Thêm danh mục</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="categoryForm" novalidate>
+          <div class="form-group">
+            <label class="form-label">Icon danh mục</label>
+            <div class="icon-picker-wrap">
+              <div class="icon-preview" id="iconPreview" onclick="toggleEmojiPicker()">📦</div>
+              <div class="icon-picker-input">
+                <input class="form-control" type="text" id="mIcon" placeholder="Nhập emoji hoặc chọn bên dưới" maxlength="4" value="📦" oninput="updateIconPreview()" />
+                <div class="form-error" id="mIconError"></div>
+              </div>
+            </div>
+            <div class="emoji-grid" id="emojiGrid" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mName">Tên danh mục *</label>
+            <input class="form-control" type="text" id="mName" placeholder="VD: Điện thoại, Laptop, Thời trang..." oninput="autoSlug()" />
+            <div class="form-error" id="mNameError"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="mSlug">Slug (URL) *</label>
+            <input class="form-control" type="text" id="mSlug" placeholder="dien-thoai" />
+            <div class="slug-preview">URL: <span id="slugPreview">/products?category=...</span></div>
+            <div class="form-error" id="mSlugError"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Hủy</button>
+        <button class="btn btn-primary btn-sm" id="modalSaveBtn" onclick="saveCategory()">💾 Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════════════╗
+       ║       DELETE CONFIRM MODAL           ║
+       ╚══════════════════════════════════════╝ -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-header">
+        <span class="modal-title">⚠️ Xác nhận xóa</span>
+        <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-confirm">
+          <span class="delete-confirm-icon">🗑️</span>
+          <div class="delete-confirm-text">Bạn có chắc muốn xóa danh mục</div>
+          <div class="delete-confirm-name" id="deleteConfirmName"></div>
+          <div class="delete-confirm-warn">⚠️ Sản phẩm thuộc danh mục này sẽ không bị xóa nhưng sẽ mất liên kết danh mục</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeDeleteModal()">Hủy</button>
+        <button class="btn-danger btn-sm" id="deleteConfirmBtn" onclick="confirmDelete()">🗑️ Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+  /* ============================================
+     Admin Categories Script — Full CRUD
+  ============================================ */
+
+  // Auth check
+  if (!Auth.requireAdmin()) { /* redirected */ }
+
+  let allCategories = [];
+  let filteredCategories = [];
+  let productCounts = {};
+  let editingId = null;
+  let deletingId = null;
+  let currentView = 'grid';
+
+  // Popular emojis for category icons
+  const EMOJI_LIST = [
+    '📱','💻','⌚','🎧','📷','🖥️','⌨️','🖱️',
+    '👕','👗','👟','👜','🧢','👓','💍','🧥',
+    '🏠','🛋️','🪑','💡','🧹','🍳','🔧','🪴',
+    '📚','✏️','🎨','🖊️','📐','🎒','📓','🗂️',
+    '⚽','🏀','🎾','🏋️','🚴','🏊','⛷️','🎣',
+    '🍎','🥩','🥛','🍕','🧁','🍫','☕','🥤',
+    '🚗','🏍️','🚲','✈️','🛴','⛽','🔋','🧰',
+    '💄','🧴','💊','🩺','🧸','🎮','🎵','📦',
+  ];
+
+  /* ── Emoji Picker ──────────────────────────── */
+  function renderEmojiPicker() {
+    const grid = document.getElementById('emojiGrid');
+    grid.innerHTML = EMOJI_LIST.map(e =>
+      `<button type="button" class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`
+    ).join('');
+  }
+
+  function toggleEmojiPicker() {
+    const grid = document.getElementById('emojiGrid');
+    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+  }
+
+  function selectEmoji(emoji) {
+    document.getElementById('mIcon').value = emoji;
+    document.getElementById('iconPreview').textContent = emoji;
+    // Highlight selected
+    document.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.textContent === emoji);
+    });
+  }
+
+  function updateIconPreview() {
+    const val = document.getElementById('mIcon').value.trim();
+    document.getElementById('iconPreview').textContent = val || '📦';
+  }
+
+  /* ── Auto-generate slug from name ──────────── */
+  function autoSlug() {
+    const name = document.getElementById('mName').value.trim();
+    const slug = generateSlug(name);
+    document.getElementById('mSlug').value = slug;
+    document.getElementById('slugPreview').textContent = `/products?category=${slug || '...'}`;
+  }
+
+  function generateSlug(text) {
+    // Vietnamese diacritics map
+    const map = {
+      'à':'a','á':'a','ả':'a','ã':'a','ạ':'a',
+      'ă':'a','ằ':'a','ắ':'a','ẳ':'a','ẵ':'a','ặ':'a',
+      'â':'a','ầ':'a','ấ':'a','ẩ':'a','ẫ':'a','ậ':'a',
+      'đ':'d',
+      'è':'e','é':'e','ẻ':'e','ẽ':'e','ẹ':'e',
+      'ê':'e','ề':'e','ế':'e','ể':'e','ễ':'e','ệ':'e',
+      'ì':'i','í':'i','ỉ':'i','ĩ':'i','ị':'i',
+      'ò':'o','ó':'o','ỏ':'o','õ':'o','ọ':'o',
+      'ô':'o','ồ':'o','ố':'o','ổ':'o','ỗ':'o','ộ':'o',
+      'ơ':'o','ờ':'o','ớ':'o','ở':'o','ỡ':'o','ợ':'o',
+      'ù':'u','ú':'u','ủ':'u','ũ':'u','ụ':'u',
+      'ư':'u','ừ':'u','ứ':'u','ử':'u','ữ':'u','ự':'u',
+      'ỳ':'y','ý':'y','ỷ':'y','ỹ':'y','ỵ':'y',
+    };
+    return text
+      .toLowerCase()
+      .split('')
+      .map(c => map[c] || c)
+      .join('')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  /* ── View Toggle ───────────────────────────── */
+  function setView(view) {
+    currentView = view;
+    document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+    document.getElementById('tableViewBtn').classList.toggle('active', view === 'table');
+    document.querySelector('.cat-grid-view').classList.toggle('hidden', view !== 'grid');
+    document.getElementById('catTableView').classList.toggle('active', view === 'table');
+  }
+
+  /* ── Load Categories ───────────────────────── */
+  async function loadCategories() {
+    try {
+      const data = await categoryAPI.getAll();
+      allCategories = data.categories || [];
+      filteredCategories = [...allCategories];
+
+      // Load product counts
+      await loadProductCounts();
+
+      updateStats();
+      renderCategories();
+    } catch (err) {
+      console.error('Load categories error:', err);
+      showToast('Lỗi khi tải danh mục: ' + err.message, 'error');
+    }
+  }
+
+  async function loadProductCounts() {
+    try {
+      const data = await productAPI.getAll({ limit: 1000 });
+      const products = data.products || [];
+      productCounts = {};
+      products.forEach(p => {
+        if (p.category_id) {
+          productCounts[p.category_id] = (productCounts[p.category_id] || 0) + 1;
+        }
+      });
+    } catch (err) {
+      console.error('Load product counts error:', err);
+    }
+  }
+
+  function updateStats() {
+    const totalCats = allCategories.length;
+    const totalProds = Object.values(productCounts).reduce((s, c) => s + c, 0);
+    document.getElementById('totalCategories').textContent = totalCats;
+    document.getElementById('totalProducts').textContent = totalProds;
+    document.getElementById('avgProducts').textContent = totalCats > 0
+      ? Math.round(totalProds / totalCats)
+      : 0;
+  }
+
+  function filterCategories() {
+    const search = document.getElementById('catSearch').value.trim().toLowerCase();
+    filteredCategories = allCategories.filter(c =>
+      c.name.toLowerCase().includes(search) ||
+      c.slug.toLowerCase().includes(search)
+    );
+    renderCategories();
+  }
+
+  /* ── Render ────────────────────────────────── */
+  function renderCategories() {
+    renderGrid();
+    renderTable();
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('catGrid');
+    if (filteredCategories.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1;">
+          <div class="empty-state">
+            <div class="empty-state-icon">🏷️</div>
+            <div class="empty-state-text">Chưa có danh mục nào</div>
+            <div class="empty-state-sub">Nhấn "Thêm danh mục" để tạo danh mục đầu tiên</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = filteredCategories.map(c => {
+      const count = productCounts[c.id] || 0;
+      return `
+      <div class="cat-card">
+        <div class="cat-card-header">
+          <div class="cat-card-icon">${c.icon || '📦'}</div>
+          <div class="cat-card-info">
+            <div class="cat-card-name">${c.name}</div>
+            <div class="cat-card-slug">${c.slug}</div>
+          </div>
+        </div>
+        <div class="cat-card-meta">
+          <div class="cat-card-count"><span>${count}</span> sản phẩm</div>
+          <div class="action-btns">
+            <button class="action-btn" onclick="editCategory(${c.id})" title="Sửa">✏️</button>
+            <button class="action-btn danger" onclick="openDeleteModal(${c.id}, '${c.name.replace(/'/g, "\\'")}')" title="Xóa">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('catTableBody');
+    const showCount = document.getElementById('showingCount');
+    showCount.textContent = `Hiển thị ${filteredCategories.length} / ${allCategories.length} danh mục`;
+
+    if (filteredCategories.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Chưa có danh mục nào</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filteredCategories.map(c => {
+      const count = productCounts[c.id] || 0;
+      return `
+      <tr>
+        <td style="color:var(--text-muted);font-weight:600;">#${c.id}</td>
+        <td style="font-size:24px;">${c.icon || '📦'}</td>
+        <td style="font-weight:700;">${c.name}</td>
+        <td><span class="cat-card-slug">${c.slug}</span></td>
+        <td><span class="badge badge-primary">${count} sản phẩm</span></td>
+        <td>
+          <div class="action-btns">
+            <button class="action-btn" onclick="editCategory(${c.id})" title="Sửa">✏️</button>
+            <button class="action-btn danger" onclick="openDeleteModal(${c.id}, '${c.name.replace(/'/g, "\\'")}')" title="Xóa">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Modal ─────────────────────────────────── */
+  function openModal(id = null) {
+    editingId = id;
+    const modal = document.getElementById('categoryModal');
+    const form = document.getElementById('categoryForm');
+    form.reset();
+    document.querySelectorAll('.form-error').forEach(e => e.textContent = '');
+    document.getElementById('mIcon').value = '📦';
+    document.getElementById('iconPreview').textContent = '📦';
+    document.getElementById('emojiGrid').style.display = 'none';
+    document.getElementById('slugPreview').textContent = '/products?category=...';
+
+    if (id) {
+      const cat = allCategories.find(c => c.id === id);
+      if (cat) {
+        document.getElementById('modalTitle').textContent = '✏️ Sửa danh mục';
+        document.getElementById('mName').value = cat.name;
+        document.getElementById('mSlug').value = cat.slug;
+        document.getElementById('mIcon').value = cat.icon || '📦';
+        document.getElementById('iconPreview').textContent = cat.icon || '📦';
+        document.getElementById('slugPreview').textContent = `/products?category=${cat.slug}`;
+      }
+    } else {
+      document.getElementById('modalTitle').textContent = '➕ Thêm danh mục mới';
+    }
+
+    modal.classList.add('active');
+    setTimeout(() => document.getElementById('mName').focus(), 100);
+  }
+
+  function closeModal() {
+    document.getElementById('categoryModal').classList.remove('active');
+    editingId = null;
+  }
+
+  function editCategory(id) { openModal(id); }
+
+  /* ── Save (Create / Update) ────────────────── */
+  async function saveCategory() {
+    ['mNameError', 'mSlugError', 'mIconError'].forEach(id => document.getElementById(id).textContent = '');
+
+    const name = document.getElementById('mName').value.trim();
+    const slug = document.getElementById('mSlug').value.trim();
+    const icon = document.getElementById('mIcon').value.trim() || '📦';
+    let valid = true;
+
+    if (!name) { document.getElementById('mNameError').textContent = 'Vui lòng nhập tên danh mục'; valid = false; }
+    if (!slug) { document.getElementById('mSlugError').textContent = 'Vui lòng nhập slug'; valid = false; }
+    if (slug && !/^[a-z0-9-]+$/.test(slug)) { document.getElementById('mSlugError').textContent = 'Slug chỉ chứa chữ thường, số và dấu gạch ngang'; valid = false; }
+    if (!valid) return;
+
+    const body = { name, slug, icon };
+    const btn = document.getElementById('modalSaveBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang lưu...';
+
+    try {
+      if (editingId) {
+        await categoryAPI.update(editingId, body);
+        showToast('Cập nhật danh mục thành công! ✅', 'success');
+      } else {
+        await categoryAPI.create(body);
+        showToast('Thêm danh mục thành công! 🎉', 'success');
+      }
+      closeModal();
+      loadCategories();
+    } catch (err) {
+      if (err.message.includes('đã tồn tại')) {
+        document.getElementById('mSlugError').textContent = 'Slug này đã tồn tại, vui lòng chọn slug khác';
+      } else {
+        showToast('Lỗi: ' + err.message, 'error');
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 Lưu';
+    }
+  }
+
+  /* ── Delete ─────────────────────────────────── */
+  function openDeleteModal(id, name) {
+    deletingId = id;
+    document.getElementById('deleteConfirmName').textContent = `"${name}"?`;
+    document.getElementById('deleteModal').classList.add('active');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+    deletingId = null;
+  }
+
+  async function confirmDelete() {
+    if (!deletingId) return;
+    const btn = document.getElementById('deleteConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang xóa...';
+
+    try {
+      await categoryAPI.delete(deletingId);
+      showToast('Đã xóa danh mục thành công! 🗑️', 'success');
+      closeDeleteModal();
+      loadCategories();
+    } catch (err) {
+      showToast('Lỗi xóa: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🗑️ Xóa';
+    }
+  }
+
+  /* ── Close modals on overlay click ─────────── */
+  document.getElementById('categoryModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById('deleteModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDeleteModal();
+  });
+
+  /* ── Slug input update preview ─────────────── */
+  document.getElementById('mSlug').addEventListener('input', function() {
+    document.getElementById('slugPreview').textContent = `/products?category=${this.value || '...'}`;
+  });
+
+  /* ── Navbar ─────────────────────────────────── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
+  }
+
+  /* ── Init ───────────────────────────────────── */
+  renderEmojiPicker();
+  loadCategories();
+  </script>
+
+</body>
+</html>

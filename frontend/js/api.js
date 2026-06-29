@@ -2,7 +2,18 @@
    SHOPNEST — API Utility
    ============================================= */
 
-const API_BASE = 'http://localhost:3000/api';
+/* ── Auto-detect API Base URL ────────────── */
+const API_BASE = (function() {
+  const BACKEND_PORT = 3000;
+  const isHttp = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+
+  // If frontend is served by the backend itself (http://localhost:3000/frontend/...)
+  if (isHttp && window.location.port == BACKEND_PORT) {
+    return window.location.origin + '/api';
+  }
+  // Otherwise (file:// or different dev server like Live Server on port 5500)
+  return `http://localhost:${BACKEND_PORT}/api`;
+})();
 
 /* ── HTTP Helper ─────────────────────────── */
 async function request(method, path, body = null, auth = false) {
@@ -14,9 +25,31 @@ async function request(method, path, body = null, auth = false) {
   const opts = { method, headers };
   if (body) opts.body = JSON.stringify(body);
 
-  const res  = await fetch(API_BASE + path, opts);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Lỗi không xác định');
+  let res;
+  try {
+    res = await fetch(API_BASE + path, opts);
+  } catch (networkErr) {
+    console.error('Network error:', networkErr);
+    throw new Error(
+      'Không thể kết nối đến server. Hãy đảm bảo:\n' +
+      '1. Backend đang chạy (npm run dev trong thư mục backend)\n' +
+      '2. Mở web qua http://localhost:3000/frontend/ thay vì mở file trực tiếp'
+    );
+  }
+
+  // Safely parse JSON — handle empty or non-JSON responses
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (parseErr) {
+    console.error('JSON parse error:', parseErr, 'Response text:', text.substring(0, 200));
+    throw new Error(
+      `Server trả về dữ liệu không hợp lệ (HTTP ${res.status}). ` +
+      'Hãy kiểm tra backend đang chạy và database đã được cấu hình.'
+    );
+  }
+  if (!res.ok) throw new Error(data.message || `Lỗi server (HTTP ${res.status})`);
   return data;
 }
 const GET    = (path, auth)       => request('GET',    path, null, auth);
@@ -30,12 +63,30 @@ async function uploadFile(path, formData) {
   const token = localStorage.getItem('sn_token');
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res  = await fetch(API_BASE + path, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-  const data = await res.json();
+  let res;
+  try {
+    res = await fetch(API_BASE + path, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+  } catch (networkErr) {
+    console.error('Upload network error:', networkErr);
+    throw new Error('Không thể kết nối đến server để upload file');
+  }
+
+  // Safely parse JSON — handle empty or non-JSON responses
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (parseErr) {
+    console.error('Upload JSON parse error:', parseErr);
+    throw new Error(
+      `Server trả về dữ liệu không hợp lệ (HTTP ${res.status}). ` +
+      'Hãy kiểm tra backend đang chạy.'
+    );
+  }
   if (!res.ok) throw new Error(data.message || 'Lỗi upload');
   return data;
 }
@@ -263,7 +314,10 @@ function getProductImage(product) {
 
 function getProductImageSrc(product) {
   if (product.image_url) {
-    return product.image_url.startsWith('http') ? product.image_url : `http://localhost:3000${product.image_url}`;
+    if (product.image_url.startsWith('http')) return product.image_url;
+    // Derive server origin from API_BASE (remove '/api' suffix)
+    const serverOrigin = API_BASE.replace(/\/api$/, '');
+    return serverOrigin + product.image_url;
   }
   return '';
 }
