@@ -453,26 +453,28 @@
         console.error('Load recent orders error:', err);
       }
 
-      // Revenue chart (mock since we don't have daily revenue API)
-      const MOCK_REVENUE = [
-        { day: 'T2', value: 32500000 },
-        { day: 'T3', value: 45200000 },
-        { day: 'T4', value: 28700000 },
-        { day: 'T5', value: 51300000 },
-        { day: 'T6', value: 39800000 },
-        { day: 'T7', value: 62100000 },
-        { day: 'CN', value: 48300000 },
-      ];
-      const maxRev = Math.max(...MOCK_REVENUE.map(r => r.value));
-      const colors = ['#FF6B35', '#EE4D2D', '#FF8C42', '#7B2FF7', '#14B8A6', '#EE4D2D', '#FF6B35'];
-      document.getElementById('revenueChart').innerHTML = MOCK_REVENUE.map((r, i) => {
-        const h = Math.max(10, (r.value / maxRev) * 100);
-        return `
-        <div class="mini-bar" style="height:${h}%;background:${colors[i]};">
-          <span class="mini-bar-val">${(r.value / 1e6).toFixed(0)}M</span>
-          <span class="mini-bar-label">${r.day}</span>
-        </div>`;
-      }).join('');
+      try {
+        // Load revenue chart from real order data
+        const chartData = await dashboardAPI.revenueChart();
+        const REVENUE = chartData.chart || [];
+        const maxRev = Math.max(...REVENUE.map(r => r.value), 1);
+        const colors = ['#FF6B35', '#EE4D2D', '#FF8C42', '#7B2FF7', '#14B8A6', '#EE4D2D', '#FF6B35'];
+        document.getElementById('revenueChart').innerHTML = REVENUE.length > 0
+          ? REVENUE.map((r, i) => {
+              const h = Math.max(10, (r.value / maxRev) * 100);
+              const label = r.value >= 1e6 ? (r.value / 1e6).toFixed(1) + 'M' : r.value.toLocaleString('vi-VN');
+              return `
+              <div class="mini-bar" style="height:${h}%;background:${colors[i % colors.length]};">
+                <span class="mini-bar-val">${label}</span>
+                <span class="mini-bar-label">${r.day}</span>
+              </div>`;
+            }).join('')
+          : '<p style="color:var(--text-muted);text-align:center;width:100%;">Chưa có dữ liệu doanh thu</p>';
+      } catch (err) {
+        console.error('Load revenue chart error:', err);
+        document.getElementById('revenueChart').innerHTML =
+          '<p style="color:var(--text-muted);text-align:center;width:100%;">Không thể tải biểu đồ doanh thu</p>';
+      }
     }
 
     /* ── Navbar ─────────────────────────────── */

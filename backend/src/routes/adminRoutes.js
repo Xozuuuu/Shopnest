@@ -20,6 +20,7 @@ router.put('/orders/:id/status',  ctrl.updateOrderStatus);
 
 // Dashboard
 router.get('/dashboard/stats',    ctrl.dashboardStats);
+router.get('/dashboard/revenue-chart', ctrl.revenueChart);
 router.get('/dashboard/orders',   ctrl.recentOrders);
 router.get('/dashboard/products', ctrl.topProducts);
 

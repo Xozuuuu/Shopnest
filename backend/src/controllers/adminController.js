@@ -244,6 +244,42 @@ exports.recentOrders = async (req, res) => {
   }
 };
 
+/* ── GET /api/admin/dashboard/revenue-chart ───── */
+exports.revenueChart = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT d::date AS date,
+              COALESCE(SUM(o.total), 0) AS revenue
+       FROM generate_series(
+              (CURRENT_DATE - INTERVAL '6 days'),
+              CURRENT_DATE,
+              '1 day'
+            ) AS d
+       LEFT JOIN orders o
+         ON o.created_at::date = d::date
+         AND o.status != 'cancelled'
+       GROUP BY d::date
+       ORDER BY d::date ASC`
+    );
+
+    // Map to day labels (T2-CN) and revenue values
+    const dayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const chart = result.rows.map(row => {
+      const dayOfWeek = new Date(row.date).getDay(); // 0=Sun,1=Mon...
+      return {
+        day: dayLabels[dayOfWeek],
+        date: row.date,
+        value: parseInt(row.revenue),
+      };
+    });
+
+    res.json({ chart });
+  } catch (err) {
+    console.error('Revenue chart error:', err);
+    res.status(500).json({ message: 'Lỗi server khi lấy dữ liệu biểu đồ doanh thu' });
+  }
+};
+
 /* ── GET /api/admin/dashboard/products ────────── */
 exports.topProducts = async (req, res) => {
   try {

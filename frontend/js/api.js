@@ -155,6 +155,7 @@ const reviewAPI = {
 /* ── Dashboard (Admin) ───────────────────── */
 const dashboardAPI = {
   stats:         () => GET('/admin/dashboard/stats',   true),
+  revenueChart:  () => GET('/admin/dashboard/revenue-chart', true),
   recentOrders:  () => GET('/admin/dashboard/orders',  true),
   topProducts:   () => GET('/admin/dashboard/products',true),
 };
