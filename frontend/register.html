@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Đăng ký — ShopNest</title>
-  <meta name="description" content="Tạo tài khoản ShopNest miễn phí để trải nghiệm mua sắm thông minh với hàng nghìn ưu đãi." />
+  <meta name="description"
+    content="Tạo tài khoản ShopNest miễn phí để trải nghiệm mua sắm thông minh với hàng nghìn ưu đãi." />
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
 
   <!-- ╔══════════════════════════════════════╗
@@ -40,7 +43,8 @@
         <div class="form-group">
           <label class="form-label" for="regPassword">Mật khẩu</label>
           <div class="input-group">
-            <input class="form-control" type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" />
+            <input class="form-control" type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự"
+              autocomplete="new-password" />
             <button type="button" class="toggle-pw" id="togglePw1" title="Hiển thị mật khẩu">👁️</button>
           </div>
           <div class="form-error" id="pwError"></div>
@@ -50,16 +54,21 @@
         <div class="form-group">
           <label class="form-label" for="regConfirm">Xác nhận mật khẩu</label>
           <div class="input-group">
-            <input class="form-control" type="password" id="regConfirm" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+            <input class="form-control" type="password" id="regConfirm" placeholder="Nhập lại mật khẩu"
+              autocomplete="new-password" />
             <button type="button" class="toggle-pw" id="togglePw2" title="Hiển thị mật khẩu">👁️</button>
           </div>
           <div class="form-error" id="confirmError"></div>
         </div>
 
         <div class="form-group">
-          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary);line-height:1.5;">
-            <input type="checkbox" id="agreeTerms" style="accent-color:var(--primary);width:16px;height:16px;margin-top:2px;flex-shrink:0;" />
-            Tôi đồng ý với <a href="#" style="color:var(--primary);font-weight:600;">Điều khoản dịch vụ</a>&nbsp;và&nbsp;<a href="#" style="color:var(--primary);font-weight:600;">Chính sách bảo mật</a> của ShopNest
+          <label
+            style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:var(--text-secondary);line-height:1.5;">
+            <input type="checkbox" id="agreeTerms"
+              style="accent-color:var(--primary);width:16px;height:16px;margin-top:2px;flex-shrink:0;" />
+            Tôi đồng ý với <a href="#" style="color:var(--primary);font-weight:600;">Điều khoản dịch
+              vụ</a>&nbsp;và&nbsp;<a href="#" style="color:var(--primary);font-weight:600;">Chính sách bảo mật</a> của
+            ShopNest
           </label>
           <div class="form-error" id="termsError"></div>
         </div>
@@ -72,10 +81,12 @@
 
       <!-- Social register (mock) -->
       <div style="display:flex;gap:10px;">
-        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;" onclick="showToast('Tính năng đang phát triển','info')">
+        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;"
+          onclick="showToast('Tính năng đang phát triển','info')">
           🔵 Google
         </button>
-        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;" onclick="showToast('Tính năng đang phát triển','info')">
+        <button type="button" class="btn btn-outline btn-block" style="font-size:13px;"
+          onclick="showToast('Tính năng đang phát triển','info')">
           🔷 Facebook
         </button>
       </div>
@@ -90,156 +101,157 @@
 
   <script src="js/api.js"></script>
   <script>
-  /* ============================================
-     Register Page Script — Real API
-  ============================================ */
+    /* ============================================
+       Register Page Script — Real API
+    ============================================ */
 
-  const form      = document.getElementById('registerForm');
-  const nameIn    = document.getElementById('regName');
-  const emailIn   = document.getElementById('regEmail');
-  const pwIn      = document.getElementById('regPassword');
-  const confirmIn = document.getElementById('regConfirm');
-  const agreeIn   = document.getElementById('agreeTerms');
+    const form = document.getElementById('registerForm');
+    const nameIn = document.getElementById('regName');
+    const emailIn = document.getElementById('regEmail');
+    const pwIn = document.getElementById('regPassword');
+    const confirmIn = document.getElementById('regConfirm');
+    const agreeIn = document.getElementById('agreeTerms');
 
-  const nameErr    = document.getElementById('nameError');
-  const emailErr   = document.getElementById('emailError');
-  const pwErr      = document.getElementById('pwError');
-  const confirmErr = document.getElementById('confirmError');
-  const termsErr   = document.getElementById('termsError');
-  const pwStrength = document.getElementById('pwStrength');
+    const nameErr = document.getElementById('nameError');
+    const emailErr = document.getElementById('emailError');
+    const pwErr = document.getElementById('pwError');
+    const confirmErr = document.getElementById('confirmError');
+    const termsErr = document.getElementById('termsError');
+    const pwStrength = document.getElementById('pwStrength');
 
-  /* ── Toggle Password ────────────────────── */
-  document.getElementById('togglePw1').addEventListener('click', () => {
-    const isPassword = pwIn.type === 'password';
-    pwIn.type = isPassword ? 'text' : 'password';
-    document.getElementById('togglePw1').textContent = isPassword ? '🙈' : '👁️';
-  });
-  document.getElementById('togglePw2').addEventListener('click', () => {
-    const isPassword = confirmIn.type === 'password';
-    confirmIn.type = isPassword ? 'text' : 'password';
-    document.getElementById('togglePw2').textContent = isPassword ? '🙈' : '👁️';
-  });
+    /* ── Toggle Password ────────────────────── */
+    document.getElementById('togglePw1').addEventListener('click', () => {
+      const isPassword = pwIn.type === 'password';
+      pwIn.type = isPassword ? 'text' : 'password';
+      document.getElementById('togglePw1').textContent = isPassword ? '🙈' : '👁️';
+    });
+    document.getElementById('togglePw2').addEventListener('click', () => {
+      const isPassword = confirmIn.type === 'password';
+      confirmIn.type = isPassword ? 'text' : 'password';
+      document.getElementById('togglePw2').textContent = isPassword ? '🙈' : '👁️';
+    });
 
-  /* ── Password Strength ─────────────────── */
-  pwIn.addEventListener('input', () => {
-    const pw = pwIn.value;
-    if (!pw) { pwStrength.textContent = ''; return; }
-    let score = 0;
-    if (pw.length >= 6) score++;
-    if (pw.length >= 10) score++;
-    if (/[A-Z]/.test(pw)) score++;
-    if (/[0-9]/.test(pw)) score++;
-    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    /* ── Password Strength ─────────────────── */
+    pwIn.addEventListener('input', () => {
+      const pw = pwIn.value;
+      if (!pw) { pwStrength.textContent = ''; return; }
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (pw.length >= 10) score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
 
-    const levels = [
-      { label: '🔴 Rất yếu', color: '#e53e3e' },
-      { label: '🟠 Yếu',     color: '#DD6B20' },
-      { label: '🟡 Trung bình', color: '#D69E2E' },
-      { label: '🟢 Mạnh',    color: '#38A169' },
-      { label: '🟢 Rất mạnh', color: '#276749' },
-    ];
-    const level = levels[Math.min(score, 4)];
-    pwStrength.textContent = level.label;
-    pwStrength.style.color = level.color;
-  });
+      const levels = [
+        { label: '🔴 Rất yếu', color: '#e53e3e' },
+        { label: '🟠 Yếu', color: '#DD6B20' },
+        { label: '🟡 Trung bình', color: '#D69E2E' },
+        { label: '🟢 Mạnh', color: '#38A169' },
+        { label: '🟢 Rất mạnh', color: '#276749' },
+      ];
+      const level = levels[Math.min(score, 4)];
+      pwStrength.textContent = level.label;
+      pwStrength.style.color = level.color;
+    });
 
-  /* ── Validation ─────────────────────────── */
-  function validateEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  function clearErrors() {
-    [nameErr, emailErr, pwErr, confirmErr, termsErr].forEach(el => el.textContent = '');
-    [nameIn, emailIn, pwIn, confirmIn].forEach(el => el.classList.remove('error'));
-  }
-
-  /* ── Submit ─────────────────────────────── */
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrors();
-
-    const name    = nameIn.value.trim();
-    const email   = emailIn.value.trim();
-    const pw      = pwIn.value;
-    const confirm = confirmIn.value;
-    const agreed  = agreeIn.checked;
-    let valid     = true;
-
-    if (!name) {
-      nameErr.textContent = 'Vui lòng nhập họ tên';
-      nameIn.classList.add('error');
-      valid = false;
-    } else if (name.length < 2) {
-      nameErr.textContent = 'Họ tên cần ít nhất 2 ký tự';
-      nameIn.classList.add('error');
-      valid = false;
+    /* ── Validation ─────────────────────────── */
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-    if (!email) {
-      emailErr.textContent = 'Vui lòng nhập email';
-      emailIn.classList.add('error');
-      valid = false;
-    } else if (!validateEmail(email)) {
-      emailErr.textContent = 'Email không hợp lệ';
-      emailIn.classList.add('error');
-      valid = false;
+    function clearErrors() {
+      [nameErr, emailErr, pwErr, confirmErr, termsErr].forEach(el => el.textContent = '');
+      [nameIn, emailIn, pwIn, confirmIn].forEach(el => el.classList.remove('error'));
     }
 
-    if (!pw) {
-      pwErr.textContent = 'Vui lòng nhập mật khẩu';
-      pwIn.classList.add('error');
-      valid = false;
-    } else if (pw.length < 6) {
-      pwErr.textContent = 'Mật khẩu cần ít nhất 6 ký tự';
-      pwIn.classList.add('error');
-      valid = false;
-    }
+    /* ── Submit ─────────────────────────────── */
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
 
-    if (!confirm) {
-      confirmErr.textContent = 'Vui lòng xác nhận mật khẩu';
-      confirmIn.classList.add('error');
-      valid = false;
-    } else if (pw !== confirm) {
-      confirmErr.textContent = 'Mật khẩu xác nhận không khớp';
-      confirmIn.classList.add('error');
-      valid = false;
-    }
+      const name = nameIn.value.trim();
+      const email = emailIn.value.trim();
+      const pw = pwIn.value;
+      const confirm = confirmIn.value;
+      const agreed = agreeIn.checked;
+      let valid = true;
 
-    if (!agreed) {
-      termsErr.textContent = 'Bạn cần đồng ý với điều khoản dịch vụ';
-      valid = false;
-    }
-
-    if (!valid) return;
-
-    /* ── Real API Register ───────────────── */
-    const btn = document.getElementById('registerBtn');
-    btn.disabled = true;
-    btn.textContent = 'Đang tạo tài khoản...';
-
-    try {
-      const data = await authAPI.register(name, email, pw);
-
-      showToast('Đăng ký thành công! 🎉 Chuyển đến đăng nhập...', 'success');
-
-      setTimeout(() => {
-        location.href = 'login.html';
-      }, 1000);
-    } catch (err) {
-      showToast(err.message || 'Đăng ký thất bại', 'error');
-      if (err.message.includes('Email')) {
-        emailErr.textContent = err.message;
-        emailIn.classList.add('error');
+      if (!name) {
+        nameErr.textContent = 'Vui lòng nhập họ tên';
+        nameIn.classList.add('error');
+        valid = false;
+      } else if (name.length < 2) {
+        nameErr.textContent = 'Họ tên cần ít nhất 2 ký tự';
+        nameIn.classList.add('error');
+        valid = false;
       }
-      btn.disabled = false;
-      btn.textContent = 'Đăng ký';
-    }
-  });
 
-  /* ── Redirect if already logged in ──────── */
-  if (Auth.isLoggedIn()) {
-    location.href = 'index.html';
-  }
+      if (!email) {
+        emailErr.textContent = 'Vui lòng nhập email';
+        emailIn.classList.add('error');
+        valid = false;
+      } else if (!validateEmail(email)) {
+        emailErr.textContent = 'Email không hợp lệ';
+        emailIn.classList.add('error');
+        valid = false;
+      }
+
+      if (!pw) {
+        pwErr.textContent = 'Vui lòng nhập mật khẩu';
+        pwIn.classList.add('error');
+        valid = false;
+      } else if (pw.length < 8) {
+        pwErr.textContent = 'Mật khẩu cần ít nhất 8 ký tự';
+        pwIn.classList.add('error');
+        valid = false;
+      }
+
+      if (!confirm) {
+        confirmErr.textContent = 'Vui lòng xác nhận mật khẩu';
+        confirmIn.classList.add('error');
+        valid = false;
+      } else if (pw !== confirm) {
+        confirmErr.textContent = 'Mật khẩu xác nhận không khớp';
+        confirmIn.classList.add('error');
+        valid = false;
+      }
+
+      if (!agreed) {
+        termsErr.textContent = 'Bạn cần đồng ý với điều khoản dịch vụ';
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      /* ── Real API Register ───────────────── */
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true;
+      btn.textContent = 'Đang tạo tài khoản...';
+
+      try {
+        const data = await authAPI.register(name, email, pw);
+
+        showToast('Đăng ký thành công! 🎉 Chuyển đến đăng nhập...', 'success');
+
+        setTimeout(() => {
+          location.href = 'login.html';
+        }, 1000);
+      } catch (err) {
+        showToast(err.message || 'Đăng ký thất bại', 'error');
+        if (err.message.includes('Email')) {
+          emailErr.textContent = err.message;
+          emailIn.classList.add('error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Đăng ký';
+      }
+    });
+
+    /* ── Redirect if already logged in ──────── */
+    if (Auth.isLoggedIn()) {
+      location.href = 'index.html';
+    }
   </script>
 </body>
+
 </html>
