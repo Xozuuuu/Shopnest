@@ -3,8 +3,8 @@
    ============================================= */
 
 const bcrypt = require('bcryptjs');
-const jwt    = require('jsonwebtoken');
-const pool   = require('../config/db');
+const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
 
 /* ── Helper: generate JWT ────────────────────── */
 function generateToken(user) {
@@ -18,12 +18,12 @@ function generateToken(user) {
 /* ── Helper: sanitize user for response ──────── */
 function sanitizeUser(user) {
   return {
-    id:      user.id,
-    name:    user.name,
-    email:   user.email,
-    phone:   user.phone || '',
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone || '',
     address: user.address || '',
-    role:    user.role,
+    role: user.role,
     created_at: user.created_at,
   };
 }
@@ -37,8 +37,8 @@ exports.register = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Mật khẩu cần ít nhất 6 ký tự' });
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Mật khẩu cần ít nhất 8 ký tự' });
     }
 
     // Check existing email
@@ -57,7 +57,7 @@ exports.register = async (req, res) => {
       [name, email, password_hash]
     );
 
-    const user  = result.rows[0];
+    const user = result.rows[0];
     const token = generateToken(user);
 
     res.status(201).json({
