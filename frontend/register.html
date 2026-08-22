@@ -136,8 +136,8 @@
       const pw = pwIn.value;
       if (!pw) { pwStrength.textContent = ''; return; }
       let score = 0;
-      if (pw.length >= 7) score++;
-      if (pw.length >= 10) score++;
+      if (pw.length >= 6) score++;
+      if (pw.length >= 8) score++;
       if (/[A-Z]/.test(pw)) score++;
       if (/[0-9]/.test(pw)) score++;
       if (/[^A-Za-z0-9]/.test(pw)) score++;
@@ -200,7 +200,7 @@
         pwErr.textContent = 'Vui lòng nhập mật khẩu';
         pwIn.classList.add('error');
         valid = false;
-      } else if (pw.length < 8) {
+      } else if (pw.length < 6) {
         pwErr.textContent = 'Mật khẩu cần ít nhất 8 ký tự';
         pwIn.classList.add('error');
         valid = false;

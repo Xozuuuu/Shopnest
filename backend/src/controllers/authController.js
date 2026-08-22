@@ -37,7 +37,7 @@ exports.register = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin' });
     }
-    if (password.length < 8) {
+    if (password.length < 6) {
       return res.status(400).json({ message: 'Mật khẩu cần ít nhất 8 ký tự' });
     }
 
