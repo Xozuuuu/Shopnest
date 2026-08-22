@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +17,7 @@
       margin-bottom: 16px;
       flex-wrap: wrap;
     }
+
     .toolbar-search {
       display: flex;
       align-items: center;
@@ -23,6 +25,7 @@
       flex: 1;
       max-width: 400px;
     }
+
     .toolbar-search input {
       flex: 1;
       padding: 8px 14px;
@@ -31,10 +34,21 @@
       font-size: 13px;
       outline: none;
     }
-    .toolbar-search input:focus { border-color: var(--primary); }
-    .toolbar-actions { display: flex; gap: 8px; }
 
-    .action-btns { display: flex; gap: 4px; }
+    .toolbar-search input:focus {
+      border-color: var(--primary);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 4px;
+    }
+
     .action-btn {
       width: 30px;
       height: 30px;
@@ -48,8 +62,16 @@
       border: 1px solid var(--border);
       background: var(--bg-white);
     }
-    .action-btn:hover { border-color: var(--primary); background: var(--primary-light); }
-    .action-btn.danger:hover { border-color: #e53e3e; background: #FEE2E2; }
+
+    .action-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .action-btn.danger:hover {
+      border-color: #e53e3e;
+      background: #FEE2E2;
+    }
 
     /* Category Card Grid */
     .cat-grid {
@@ -68,6 +90,7 @@
       position: relative;
       overflow: hidden;
     }
+
     .cat-card::before {
       content: '';
       position: absolute;
@@ -79,12 +102,16 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
+
     .cat-card:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-md);
       border-color: var(--primary);
     }
-    .cat-card:hover::before { opacity: 1; }
+
+    .cat-card:hover::before {
+      opacity: 1;
+    }
 
     .cat-card-header {
       display: flex;
@@ -92,6 +119,7 @@
       gap: 14px;
       margin-bottom: 12px;
     }
+
     .cat-card-icon {
       width: 52px;
       height: 52px;
@@ -100,16 +128,22 @@
       align-items: center;
       justify-content: center;
       font-size: 26px;
-      background: linear-gradient(135deg, rgba(238,77,45,0.08), rgba(255,140,66,0.12));
+      background: linear-gradient(135deg, rgba(238, 77, 45, 0.08), rgba(255, 140, 66, 0.12));
       flex-shrink: 0;
     }
-    .cat-card-info { flex: 1; min-width: 0; }
+
+    .cat-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .cat-card-name {
       font-size: 16px;
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 2px;
     }
+
     .cat-card-slug {
       font-size: 12px;
       color: var(--text-muted);
@@ -119,6 +153,7 @@
       border-radius: var(--radius-sm);
       display: inline-block;
     }
+
     .cat-card-meta {
       display: flex;
       align-items: center;
@@ -126,11 +161,13 @@
       padding-top: 12px;
       border-top: 1px solid var(--border);
     }
+
     .cat-card-count {
       font-size: 13px;
       color: var(--text-secondary);
       font-weight: 600;
     }
+
     .cat-card-count span {
       color: var(--primary);
       font-weight: 800;
@@ -142,15 +179,28 @@
       padding: 60px 20px;
       color: var(--text-muted);
     }
-    .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
-    .empty-state-text { font-size: 16px; margin-bottom: 8px; font-weight: 600; }
-    .empty-state-sub { font-size: 13px; }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .empty-state-sub {
+      font-size: 13px;
+    }
 
     /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.5);
+      background: rgba(0, 0, 0, .5);
       z-index: 2000;
       display: flex;
       align-items: center;
@@ -160,7 +210,12 @@
       visibility: hidden;
       transition: all .25s;
     }
-    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .modal {
       background: var(--bg-white);
       border-radius: var(--radius-xl);
@@ -172,7 +227,11 @@
       transform: translateY(20px);
       transition: transform .25s;
     }
-    .modal-overlay.active .modal { transform: translateY(0); }
+
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+
     .modal-header {
       padding: 20px 24px;
       border-bottom: 1px solid var(--border);
@@ -180,7 +239,12 @@
       align-items: center;
       justify-content: space-between;
     }
-    .modal-title { font-size: 18px; font-weight: 700; }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
     .modal-close {
       width: 32px;
       height: 32px;
@@ -194,8 +258,15 @@
       border: none;
       background: none;
     }
-    .modal-close:hover { background: var(--bg-page); }
-    .modal-body { padding: 24px; }
+
+    .modal-close:hover {
+      background: var(--bg-page);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
     .modal-footer {
       padding: 16px 24px;
       border-top: 1px solid var(--border);
@@ -210,6 +281,7 @@
       align-items: center;
       gap: 12px;
     }
+
     .icon-preview {
       width: 56px;
       height: 56px;
@@ -224,8 +296,14 @@
       flex-shrink: 0;
       cursor: pointer;
     }
-    .icon-preview:hover { border-color: var(--primary); }
-    .icon-picker-input { flex: 1; }
+
+    .icon-preview:hover {
+      border-color: var(--primary);
+    }
+
+    .icon-picker-input {
+      flex: 1;
+    }
 
     .emoji-grid {
       display: grid;
@@ -239,6 +317,7 @@
       margin-top: 8px;
       background: var(--bg-page);
     }
+
     .emoji-btn {
       width: 36px;
       height: 36px;
@@ -252,10 +331,12 @@
       justify-content: center;
       transition: all 0.15s;
     }
+
     .emoji-btn:hover {
       background: var(--primary-light);
       transform: scale(1.2);
     }
+
     .emoji-btn.selected {
       background: var(--primary-light);
       box-shadow: 0 0 0 2px var(--primary);
@@ -268,6 +349,7 @@
       margin-top: 4px;
       font-family: monospace;
     }
+
     .slug-preview span {
       background: var(--bg-page);
       padding: 2px 8px;
@@ -279,22 +361,26 @@
       text-align: center;
       padding: 10px 0;
     }
+
     .delete-confirm-icon {
       font-size: 48px;
       margin-bottom: 12px;
       display: block;
     }
+
     .delete-confirm-text {
       font-size: 15px;
       color: var(--text-secondary);
       margin-bottom: 4px;
     }
+
     .delete-confirm-name {
       font-size: 18px;
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 12px;
     }
+
     .delete-confirm-warn {
       font-size: 12px;
       color: #e53e3e;
@@ -315,7 +401,10 @@
       cursor: pointer;
       transition: all var(--transition);
     }
-    .btn-danger:hover { background: #c53030; }
+
+    .btn-danger:hover {
+      background: #c53030;
+    }
 
     /* View toggle */
     .view-toggle {
@@ -324,6 +413,7 @@
       border-radius: var(--radius-md);
       overflow: hidden;
     }
+
     .view-toggle-btn {
       padding: 6px 12px;
       font-size: 14px;
@@ -332,19 +422,35 @@
       background: var(--bg-white);
       transition: all var(--transition);
     }
+
     .view-toggle-btn.active {
       background: var(--primary);
       color: #fff;
     }
-    .view-toggle-btn:hover:not(.active) { background: var(--bg-page); }
+
+    .view-toggle-btn:hover:not(.active) {
+      background: var(--bg-page);
+    }
 
     /* Table view */
-    .cat-table-view { display: none; }
-    .cat-table-view.active { display: block; }
-    .cat-grid-view { display: grid; }
-    .cat-grid-view.hidden { display: none; }
+    .cat-table-view {
+      display: none;
+    }
+
+    .cat-table-view.active {
+      display: block;
+    }
+
+    .cat-grid-view {
+      display: grid;
+    }
+
+    .cat-grid-view.hidden {
+      display: none;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- ╔══════════════════════════════════════╗
@@ -403,7 +509,8 @@
         </div>
         <div class="toolbar-actions">
           <div class="view-toggle">
-            <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Dạng lưới">▦</button>
+            <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')"
+              title="Dạng lưới">▦</button>
             <button class="view-toggle-btn" id="tableViewBtn" onclick="setView('table')" title="Dạng bảng">☰</button>
           </div>
           <button class="btn btn-primary btn-sm" onclick="openModal()">➕ Thêm danh mục</button>
@@ -482,7 +589,8 @@
             <div class="icon-picker-wrap">
               <div class="icon-preview" id="iconPreview" onclick="toggleEmojiPicker()">📦</div>
               <div class="icon-picker-input">
-                <input class="form-control" type="text" id="mIcon" placeholder="Nhập emoji hoặc chọn bên dưới" maxlength="4" value="📦" oninput="updateIconPreview()" />
+                <input class="form-control" type="text" id="mIcon" placeholder="Nhập emoji hoặc chọn bên dưới"
+                  maxlength="4" value="📦" oninput="updateIconPreview()" />
                 <div class="form-error" id="mIconError"></div>
               </div>
             </div>
@@ -490,7 +598,8 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="mName">Tên danh mục *</label>
-            <input class="form-control" type="text" id="mName" placeholder="VD: Điện thoại, Laptop, Thời trang..." oninput="autoSlug()" />
+            <input class="form-control" type="text" id="mName" placeholder="VD: Điện thoại, Laptop, Thời trang..."
+              oninput="autoSlug()" />
             <div class="form-error" id="mNameError"></div>
           </div>
           <div class="form-group">
@@ -522,7 +631,8 @@
           <span class="delete-confirm-icon">🗑️</span>
           <div class="delete-confirm-text">Bạn có chắc muốn xóa danh mục</div>
           <div class="delete-confirm-name" id="deleteConfirmName"></div>
-          <div class="delete-confirm-warn">⚠️ Sản phẩm thuộc danh mục này sẽ không bị xóa nhưng sẽ mất liên kết danh mục</div>
+          <div class="delete-confirm-warn">⚠️ Sản phẩm thuộc danh mục này sẽ không bị xóa nhưng sẽ mất liên kết danh mục
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -534,166 +644,166 @@
 
   <script src="../js/api.js"></script>
   <script>
-  /* ============================================
-     Admin Categories Script — Full CRUD
-  ============================================ */
+    /* ============================================
+       Admin Categories Script — Full CRUD
+    ============================================ */
 
-  // Auth check
-  if (!Auth.requireAdmin()) { /* redirected */ }
+    // Auth check
+    if (!Auth.requireAdmin()) { /* redirected */ }
 
-  let allCategories = [];
-  let filteredCategories = [];
-  let productCounts = {};
-  let editingId = null;
-  let deletingId = null;
-  let currentView = 'grid';
+    let allCategories = [];
+    let filteredCategories = [];
+    let productCounts = {};
+    let editingId = null;
+    let deletingId = null;
+    let currentView = 'grid';
 
-  // Popular emojis for category icons
-  const EMOJI_LIST = [
-    '📱','💻','⌚','🎧','📷','🖥️','⌨️','🖱️',
-    '👕','👗','👟','👜','🧢','👓','💍','🧥',
-    '🏠','🛋️','🪑','💡','🧹','🍳','🔧','🪴',
-    '📚','✏️','🎨','🖊️','📐','🎒','📓','🗂️',
-    '⚽','🏀','🎾','🏋️','🚴','🏊','⛷️','🎣',
-    '🍎','🥩','🥛','🍕','🧁','🍫','☕','🥤',
-    '🚗','🏍️','🚲','✈️','🛴','⛽','🔋','🧰',
-    '💄','🧴','💊','🩺','🧸','🎮','🎵','📦',
-  ];
+    // Popular emojis for category icons
+    const EMOJI_LIST = [
+      '📱', '💻', '⌚', '🎧', '📷', '🖥️', '⌨️', '🖱️',
+      '👕', '👗', '👟', '👜', '🧢', '👓', '💍', '🧥',
+      '🏠', '🛋️', '🪑', '💡', '🧹', '🍳', '🔧', '🪴',
+      '📚', '✏️', '🎨', '🖊️', '📐', '🎒', '📓', '🗂️',
+      '⚽', '🏀', '🎾', '🏋️', '🚴', '🏊', '⛷️', '🎣',
+      '🍎', '🥩', '🥛', '🍕', '🧁', '🍫', '☕', '🥤',
+      '🚗', '🏍️', '🚲', '✈️', '🛴', '⛽', '🔋', '🧰',
+      '💄', '🧴', '💊', '🩺', '🧸', '🎮', '🎵', '📦',
+    ];
 
-  /* ── Emoji Picker ──────────────────────────── */
-  function renderEmojiPicker() {
-    const grid = document.getElementById('emojiGrid');
-    grid.innerHTML = EMOJI_LIST.map(e =>
-      `<button type="button" class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`
-    ).join('');
-  }
-
-  function toggleEmojiPicker() {
-    const grid = document.getElementById('emojiGrid');
-    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
-  }
-
-  function selectEmoji(emoji) {
-    document.getElementById('mIcon').value = emoji;
-    document.getElementById('iconPreview').textContent = emoji;
-    // Highlight selected
-    document.querySelectorAll('.emoji-btn').forEach(btn => {
-      btn.classList.toggle('selected', btn.textContent === emoji);
-    });
-  }
-
-  function updateIconPreview() {
-    const val = document.getElementById('mIcon').value.trim();
-    document.getElementById('iconPreview').textContent = val || '📦';
-  }
-
-  /* ── Auto-generate slug from name ──────────── */
-  function autoSlug() {
-    const name = document.getElementById('mName').value.trim();
-    const slug = generateSlug(name);
-    document.getElementById('mSlug').value = slug;
-    document.getElementById('slugPreview').textContent = `/products?category=${slug || '...'}`;
-  }
-
-  function generateSlug(text) {
-    // Vietnamese diacritics map
-    const map = {
-      'à':'a','á':'a','ả':'a','ã':'a','ạ':'a',
-      'ă':'a','ằ':'a','ắ':'a','ẳ':'a','ẵ':'a','ặ':'a',
-      'â':'a','ầ':'a','ấ':'a','ẩ':'a','ẫ':'a','ậ':'a',
-      'đ':'d',
-      'è':'e','é':'e','ẻ':'e','ẽ':'e','ẹ':'e',
-      'ê':'e','ề':'e','ế':'e','ể':'e','ễ':'e','ệ':'e',
-      'ì':'i','í':'i','ỉ':'i','ĩ':'i','ị':'i',
-      'ò':'o','ó':'o','ỏ':'o','õ':'o','ọ':'o',
-      'ô':'o','ồ':'o','ố':'o','ổ':'o','ỗ':'o','ộ':'o',
-      'ơ':'o','ờ':'o','ớ':'o','ở':'o','ỡ':'o','ợ':'o',
-      'ù':'u','ú':'u','ủ':'u','ũ':'u','ụ':'u',
-      'ư':'u','ừ':'u','ứ':'u','ử':'u','ữ':'u','ự':'u',
-      'ỳ':'y','ý':'y','ỷ':'y','ỹ':'y','ỵ':'y',
-    };
-    return text
-      .toLowerCase()
-      .split('')
-      .map(c => map[c] || c)
-      .join('')
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-  }
-
-  /* ── View Toggle ───────────────────────────── */
-  function setView(view) {
-    currentView = view;
-    document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
-    document.getElementById('tableViewBtn').classList.toggle('active', view === 'table');
-    document.querySelector('.cat-grid-view').classList.toggle('hidden', view !== 'grid');
-    document.getElementById('catTableView').classList.toggle('active', view === 'table');
-  }
-
-  /* ── Load Categories ───────────────────────── */
-  async function loadCategories() {
-    try {
-      const data = await categoryAPI.getAll();
-      allCategories = data.categories || [];
-      filteredCategories = [...allCategories];
-
-      // Load product counts
-      await loadProductCounts();
-
-      updateStats();
-      renderCategories();
-    } catch (err) {
-      console.error('Load categories error:', err);
-      showToast('Lỗi khi tải danh mục: ' + err.message, 'error');
+    /* ── Emoji Picker ──────────────────────────── */
+    function renderEmojiPicker() {
+      const grid = document.getElementById('emojiGrid');
+      grid.innerHTML = EMOJI_LIST.map(e =>
+        `<button type="button" class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`
+      ).join('');
     }
-  }
 
-  async function loadProductCounts() {
-    try {
-      const data = await productAPI.getAll({ limit: 1000 });
-      const products = data.products || [];
-      productCounts = {};
-      products.forEach(p => {
-        if (p.category_id) {
-          productCounts[p.category_id] = (productCounts[p.category_id] || 0) + 1;
-        }
+    function toggleEmojiPicker() {
+      const grid = document.getElementById('emojiGrid');
+      grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+    }
+
+    function selectEmoji(emoji) {
+      document.getElementById('mIcon').value = emoji;
+      document.getElementById('iconPreview').textContent = emoji;
+      // Highlight selected
+      document.querySelectorAll('.emoji-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.textContent === emoji);
       });
-    } catch (err) {
-      console.error('Load product counts error:', err);
     }
-  }
 
-  function updateStats() {
-    const totalCats = allCategories.length;
-    const totalProds = Object.values(productCounts).reduce((s, c) => s + c, 0);
-    document.getElementById('totalCategories').textContent = totalCats;
-    document.getElementById('totalProducts').textContent = totalProds;
-    document.getElementById('avgProducts').textContent = totalCats > 0
-      ? Math.round(totalProds / totalCats)
-      : 0;
-  }
+    function updateIconPreview() {
+      const val = document.getElementById('mIcon').value.trim();
+      document.getElementById('iconPreview').textContent = val || '📦';
+    }
 
-  function filterCategories() {
-    const search = document.getElementById('catSearch').value.trim().toLowerCase();
-    filteredCategories = allCategories.filter(c =>
-      c.name.toLowerCase().includes(search) ||
-      c.slug.toLowerCase().includes(search)
-    );
-    renderCategories();
-  }
+    /* ── Auto-generate slug from name ──────────── */
+    function autoSlug() {
+      const name = document.getElementById('mName').value.trim();
+      const slug = generateSlug(name);
+      document.getElementById('mSlug').value = slug;
+      document.getElementById('slugPreview').textContent = `/products?category=${slug || '...'}`;
+    }
 
-  /* ── Render ────────────────────────────────── */
-  function renderCategories() {
-    renderGrid();
-    renderTable();
-  }
+    function generateSlug(text) {
+      // Vietnamese diacritics map
+      const map = {
+        'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+        'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+        'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+        'đ': 'd',
+        'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+        'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+        'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+        'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+        'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+        'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+        'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+        'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+        'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
+      };
+      return text
+        .toLowerCase()
+        .split('')
+        .map(c => map[c] || c)
+        .join('')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
 
-  function renderGrid() {
-    const grid = document.getElementById('catGrid');
-    if (filteredCategories.length === 0) {
-      grid.innerHTML = `
+    /* ── View Toggle ───────────────────────────── */
+    function setView(view) {
+      currentView = view;
+      document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+      document.getElementById('tableViewBtn').classList.toggle('active', view === 'table');
+      document.querySelector('.cat-grid-view').classList.toggle('hidden', view !== 'grid');
+      document.getElementById('catTableView').classList.toggle('active', view === 'table');
+    }
+
+    /* ── Load Categories ───────────────────────── */
+    async function loadCategories() {
+      try {
+        const data = await categoryAPI.getAll();
+        allCategories = data.categories || [];
+        filteredCategories = [...allCategories];
+
+        // Load product counts
+        await loadProductCounts();
+
+        updateStats();
+        renderCategories();
+      } catch (err) {
+        console.error('Load categories error:', err);
+        showToast('Lỗi khi tải danh mục: ' + err.message, 'error');
+      }
+    }
+
+    async function loadProductCounts() {
+      try {
+        const data = await productAPI.getAll({ limit: 1000 });
+        const products = data.products || [];
+        productCounts = {};
+        products.forEach(p => {
+          if (p.category_id) {
+            productCounts[p.category_id] = (productCounts[p.category_id] || 0) + 1;
+          }
+        });
+      } catch (err) {
+        console.error('Load product counts error:', err);
+      }
+    }
+
+    function updateStats() {
+      const totalCats = allCategories.length;
+      const totalProds = Object.values(productCounts).reduce((s, c) => s + c, 0);
+      document.getElementById('totalCategories').textContent = totalCats;
+      document.getElementById('totalProducts').textContent = totalProds;
+      document.getElementById('avgProducts').textContent = totalCats > 0
+        ? Math.round(totalProds / totalCats)
+        : 0;
+    }
+
+    function filterCategories() {
+      const search = document.getElementById('catSearch').value.trim().toLowerCase();
+      filteredCategories = allCategories.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        c.slug.toLowerCase().includes(search)
+      );
+      renderCategories();
+    }
+
+    /* ── Render ────────────────────────────────── */
+    function renderCategories() {
+      renderGrid();
+      renderTable();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('catGrid');
+      if (filteredCategories.length === 0) {
+        grid.innerHTML = `
         <div style="grid-column: 1 / -1;">
           <div class="empty-state">
             <div class="empty-state-icon">🏷️</div>
@@ -701,12 +811,12 @@
             <div class="empty-state-sub">Nhấn "Thêm danh mục" để tạo danh mục đầu tiên</div>
           </div>
         </div>`;
-      return;
-    }
+        return;
+      }
 
-    grid.innerHTML = filteredCategories.map(c => {
-      const count = productCounts[c.id] || 0;
-      return `
+      grid.innerHTML = filteredCategories.map(c => {
+        const count = productCounts[c.id] || 0;
+        return `
       <div class="cat-card">
         <div class="cat-card-header">
           <div class="cat-card-icon">${c.icon || '📦'}</div>
@@ -723,22 +833,22 @@
           </div>
         </div>
       </div>`;
-    }).join('');
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('catTableBody');
-    const showCount = document.getElementById('showingCount');
-    showCount.textContent = `Hiển thị ${filteredCategories.length} / ${allCategories.length} danh mục`;
-
-    if (filteredCategories.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Chưa có danh mục nào</td></tr>`;
-      return;
+      }).join('');
     }
 
-    tbody.innerHTML = filteredCategories.map(c => {
-      const count = productCounts[c.id] || 0;
-      return `
+    function renderTable() {
+      const tbody = document.getElementById('catTableBody');
+      const showCount = document.getElementById('showingCount');
+      showCount.textContent = `Hiển thị ${filteredCategories.length} / ${allCategories.length} danh mục`;
+
+      if (filteredCategories.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Chưa có danh mục nào</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filteredCategories.map(c => {
+        const count = productCounts[c.id] || 0;
+        return `
       <tr>
         <td style="color:var(--text-muted);font-weight:600;">#${c.id}</td>
         <td style="font-size:24px;">${c.icon || '📦'}</td>
@@ -752,142 +862,143 @@
           </div>
         </td>
       </tr>`;
-    }).join('');
-  }
-
-  /* ── Modal ─────────────────────────────────── */
-  function openModal(id = null) {
-    editingId = id;
-    const modal = document.getElementById('categoryModal');
-    const form = document.getElementById('categoryForm');
-    form.reset();
-    document.querySelectorAll('.form-error').forEach(e => e.textContent = '');
-    document.getElementById('mIcon').value = '📦';
-    document.getElementById('iconPreview').textContent = '📦';
-    document.getElementById('emojiGrid').style.display = 'none';
-    document.getElementById('slugPreview').textContent = '/products?category=...';
-
-    if (id) {
-      const cat = allCategories.find(c => c.id === id);
-      if (cat) {
-        document.getElementById('modalTitle').textContent = '✏️ Sửa danh mục';
-        document.getElementById('mName').value = cat.name;
-        document.getElementById('mSlug').value = cat.slug;
-        document.getElementById('mIcon').value = cat.icon || '📦';
-        document.getElementById('iconPreview').textContent = cat.icon || '📦';
-        document.getElementById('slugPreview').textContent = `/products?category=${cat.slug}`;
-      }
-    } else {
-      document.getElementById('modalTitle').textContent = '➕ Thêm danh mục mới';
+      }).join('');
     }
 
-    modal.classList.add('active');
-    setTimeout(() => document.getElementById('mName').focus(), 100);
-  }
+    /* ── Modal ─────────────────────────────────── */
+    function openModal(id = null) {
+      editingId = id;
+      const modal = document.getElementById('categoryModal');
+      const form = document.getElementById('categoryForm');
+      form.reset();
+      document.querySelectorAll('.form-error').forEach(e => e.textContent = '');
+      document.getElementById('mIcon').value = '📦';
+      document.getElementById('iconPreview').textContent = '📦';
+      document.getElementById('emojiGrid').style.display = 'none';
+      document.getElementById('slugPreview').textContent = '/products?category=...';
 
-  function closeModal() {
-    document.getElementById('categoryModal').classList.remove('active');
-    editingId = null;
-  }
-
-  function editCategory(id) { openModal(id); }
-
-  /* ── Save (Create / Update) ────────────────── */
-  async function saveCategory() {
-    ['mNameError', 'mSlugError', 'mIconError'].forEach(id => document.getElementById(id).textContent = '');
-
-    const name = document.getElementById('mName').value.trim();
-    const slug = document.getElementById('mSlug').value.trim();
-    const icon = document.getElementById('mIcon').value.trim() || '📦';
-    let valid = true;
-
-    if (!name) { document.getElementById('mNameError').textContent = 'Vui lòng nhập tên danh mục'; valid = false; }
-    if (!slug) { document.getElementById('mSlugError').textContent = 'Vui lòng nhập slug'; valid = false; }
-    if (slug && !/^[a-z0-9-]+$/.test(slug)) { document.getElementById('mSlugError').textContent = 'Slug chỉ chứa chữ thường, số và dấu gạch ngang'; valid = false; }
-    if (!valid) return;
-
-    const body = { name, slug, icon };
-    const btn = document.getElementById('modalSaveBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang lưu...';
-
-    try {
-      if (editingId) {
-        await categoryAPI.update(editingId, body);
-        showToast('Cập nhật danh mục thành công! ✅', 'success');
+      if (id) {
+        const cat = allCategories.find(c => c.id === id);
+        if (cat) {
+          document.getElementById('modalTitle').textContent = '✏️ Sửa danh mục';
+          document.getElementById('mName').value = cat.name;
+          document.getElementById('mSlug').value = cat.slug;
+          document.getElementById('mIcon').value = cat.icon || '📦';
+          document.getElementById('iconPreview').textContent = cat.icon || '📦';
+          document.getElementById('slugPreview').textContent = `/products?category=${cat.slug}`;
+        }
       } else {
-        await categoryAPI.create(body);
-        showToast('Thêm danh mục thành công! 🎉', 'success');
+        document.getElementById('modalTitle').textContent = '➕ Thêm danh mục mới';
       }
-      closeModal();
-      loadCategories();
-    } catch (err) {
-      if (err.message.includes('đã tồn tại')) {
-        document.getElementById('mSlugError').textContent = 'Slug này đã tồn tại, vui lòng chọn slug khác';
-      } else {
-        showToast('Lỗi: ' + err.message, 'error');
+
+      modal.classList.add('active');
+      setTimeout(() => document.getElementById('mName').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('categoryModal').classList.remove('active');
+      editingId = null;
+    }
+
+    function editCategory(id) { openModal(id); }
+
+    /* ── Save (Create / Update) ────────────────── */
+    async function saveCategory() {
+      ['mNameError', 'mSlugError', 'mIconError'].forEach(id => document.getElementById(id).textContent = '');
+
+      const name = document.getElementById('mName').value.trim();
+      const slug = document.getElementById('mSlug').value.trim();
+      const icon = document.getElementById('mIcon').value.trim() || '📦';
+      let valid = true;
+
+      if (!name) { document.getElementById('mNameError').textContent = 'Vui lòng nhập tên danh mục'; valid = false; }
+      if (!slug) { document.getElementById('mSlugError').textContent = 'Vui lòng nhập slug'; valid = false; }
+      if (slug && !/^[a-z0-9-]+$/.test(slug)) { document.getElementById('mSlugError').textContent = 'Slug chỉ chứa chữ thường, số và dấu gạch ngang'; valid = false; }
+      if (!valid) return;
+
+      const body = { name, slug, icon };
+      const btn = document.getElementById('modalSaveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang lưu...';
+
+      try {
+        if (editingId) {
+          await categoryAPI.update(editingId, body);
+          showToast('Cập nhật danh mục thành công! ✅', 'success');
+        } else {
+          await categoryAPI.create(body);
+          showToast('Thêm danh mục thành công! 🎉', 'success');
+        }
+        closeModal();
+        loadCategories();
+      } catch (err) {
+        if (err.message.includes('đã tồn tại')) {
+          document.getElementById('mSlugError').textContent = 'Slug này đã tồn tại, vui lòng chọn slug khác';
+        } else {
+          showToast('Lỗi: ' + err.message, 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Lưu';
       }
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '💾 Lưu';
     }
-  }
 
-  /* ── Delete ─────────────────────────────────── */
-  function openDeleteModal(id, name) {
-    deletingId = id;
-    document.getElementById('deleteConfirmName').textContent = `"${name}"?`;
-    document.getElementById('deleteModal').classList.add('active');
-  }
-
-  function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('active');
-    deletingId = null;
-  }
-
-  async function confirmDelete() {
-    if (!deletingId) return;
-    const btn = document.getElementById('deleteConfirmBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang xóa...';
-
-    try {
-      await categoryAPI.delete(deletingId);
-      showToast('Đã xóa danh mục thành công! 🗑️', 'success');
-      closeDeleteModal();
-      loadCategories();
-    } catch (err) {
-      showToast('Lỗi xóa: ' + err.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '🗑️ Xóa';
+    /* ── Delete ─────────────────────────────────── */
+    function openDeleteModal(id, name) {
+      deletingId = id;
+      document.getElementById('deleteConfirmName').textContent = `"${name}"?`;
+      document.getElementById('deleteModal').classList.add('active');
     }
-  }
 
-  /* ── Close modals on overlay click ─────────── */
-  document.getElementById('categoryModal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-  document.getElementById('deleteModal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeDeleteModal();
-  });
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('active');
+      deletingId = null;
+    }
 
-  /* ── Slug input update preview ─────────────── */
-  document.getElementById('mSlug').addEventListener('input', function() {
-    document.getElementById('slugPreview').textContent = `/products?category=${this.value || '...'}`;
-  });
+    async function confirmDelete() {
+      if (!deletingId) return;
+      const btn = document.getElementById('deleteConfirmBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang xóa...';
 
-  /* ── Navbar ─────────────────────────────────── */
-  const user = Auth.getUser();
-  if (user) {
-    const el = document.getElementById('navUserName');
-    if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
-  }
+      try {
+        await categoryAPI.delete(deletingId);
+        showToast('Đã xóa danh mục thành công! 🗑️', 'success');
+        closeDeleteModal();
+        loadCategories();
+      } catch (err) {
+        showToast('Lỗi xóa: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🗑️ Xóa';
+      }
+    }
 
-  /* ── Init ───────────────────────────────────── */
-  renderEmojiPicker();
-  loadCategories();
+    /* ── Close modals on overlay click ─────────── */
+    document.getElementById('categoryModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.getElementById('deleteModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeDeleteModal();
+    });
+
+    /* ── Slug input update preview ─────────────── */
+    document.getElementById('mSlug').addEventListener('input', function () {
+      document.getElementById('slugPreview').textContent = `/products?category=${this.value || '...'}`;
+    });
+
+    /* ── Navbar ─────────────────────────────────── */
+    const user = Auth.getUser();
+    if (user) {
+      const el = document.getElementById('navUserName');
+      if (el) el.textContent = user.name ? user.name.split(' ').pop() : 'Admin';
+    }
+
+    /* ── Init ───────────────────────────────────── */
+    renderEmojiPicker();
+    loadCategories();
   </script>
 
 </body>
+
 </html>
