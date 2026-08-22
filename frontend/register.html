@@ -43,7 +43,7 @@
         <div class="form-group">
           <label class="form-label" for="regPassword">Mật khẩu</label>
           <div class="input-group">
-            <input class="form-control" type="password" id="regPassword" placeholder="Tối thiểu 6 ký tự"
+            <input class="form-control" type="password" id="regPassword" placeholder="Tối thiểu 8 ký tự"
               autocomplete="new-password" />
             <button type="button" class="toggle-pw" id="togglePw1" title="Hiển thị mật khẩu">👁️</button>
           </div>
@@ -136,7 +136,7 @@
       const pw = pwIn.value;
       if (!pw) { pwStrength.textContent = ''; return; }
       let score = 0;
-      if (pw.length >= 8) score++;
+      if (pw.length >= 7) score++;
       if (pw.length >= 10) score++;
       if (/[A-Z]/.test(pw)) score++;
       if (/[0-9]/.test(pw)) score++;
