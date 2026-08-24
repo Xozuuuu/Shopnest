@@ -370,7 +370,25 @@
       document.getElementById('productRating').textContent   = product.rating || '5.0';
       document.getElementById('productStars').textContent    = renderStars(product.rating || 5);
       document.getElementById('productSold').textContent     = `Đã bán ${product.sold > 999 ? (product.sold/1000).toFixed(1)+'k' : (product.sold || 0)}`;
-      document.getElementById('stockText').textContent       = product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng';
+      const isOutOfStock = !product.stock || product.stock <= 0;
+      document.getElementById('stockText').textContent       = isOutOfStock ? 'Hết hàng' : `Còn hàng (${product.stock})`;
+      document.getElementById('stockText').style.color       = isOutOfStock ? '#e53e3e' : '';
+
+      // Disable actions when out of stock
+      const btnAddToCart = document.querySelector('.detail-actions .btn-outline');
+      const btnBuyNow   = document.querySelector('.detail-actions .btn-primary');
+      const qtyControl  = document.querySelector('.qty-control');
+      if (isOutOfStock) {
+        btnAddToCart.disabled = true;
+        btnAddToCart.style.opacity = '0.5';
+        btnAddToCart.style.cursor = 'not-allowed';
+        btnBuyNow.disabled = true;
+        btnBuyNow.style.opacity = '0.5';
+        btnBuyNow.style.cursor = 'not-allowed';
+        if (qtyControl) qtyControl.style.opacity = '0.5';
+        document.getElementById('qtyInput').disabled = true;
+        document.querySelectorAll('.qty-btn').forEach(b => b.disabled = true);
+      }
       
       const breadcrumbCat = document.getElementById('breadcrumbCat');
       breadcrumbCat.textContent = product.category_name || 'Sản phẩm';
@@ -497,6 +515,10 @@
   /* ── Add to Cart ────────────────────────── */
   async function addToCart() {
     if (!Auth.requireLogin()) return;
+    if (!product || !product.stock || product.stock <= 0) {
+      showToast('Sản phẩm đã hết hàng, không thể thêm vào giỏ!', 'error');
+      return;
+    }
     const qty = Number(document.getElementById('qtyInput').value);
     
     try {
@@ -510,6 +532,10 @@
 
   async function buyNow() {
     if (!Auth.requireLogin()) return;
+    if (!product || !product.stock || product.stock <= 0) {
+      showToast('Sản phẩm đã hết hàng, không thể mua!', 'error');
+      return;
+    }
     const qty = Number(document.getElementById('qtyInput').value);
     try {
       await cartAPI.add(productId, qty);

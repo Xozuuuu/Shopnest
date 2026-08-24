@@ -80,10 +80,10 @@ exports.create = async (req, res) => {
       return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin giao hàng' });
     }
 
-    // Get user's cart items
+    // Get user's cart items (include stock for validation)
     const cartResult = await client.query(
       `SELECT ci.quantity, p.id AS product_id, p.name AS product_name,
-              p.price, p.icon, p.bg_color, p.image_url AS product_image
+              p.price, p.icon, p.bg_color, p.image_url AS product_image, p.stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
        WHERE ci.user_id = $1`,
@@ -93,6 +93,25 @@ exports.create = async (req, res) => {
     if (cartResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: 'Giỏ hàng trống' });
+    }
+
+    // Validate stock for all items
+    const outOfStockItems = cartResult.rows.filter(item => !item.stock || item.stock <= 0);
+    if (outOfStockItems.length > 0) {
+      await client.query('ROLLBACK');
+      const names = outOfStockItems.map(i => i.product_name).join(', ');
+      return res.status(400).json({
+        message: `Sản phẩm đã hết hàng: ${names}. Vui lòng xóa khỏi giỏ hàng.`,
+      });
+    }
+
+    const insufficientStock = cartResult.rows.filter(item => item.quantity > item.stock);
+    if (insufficientStock.length > 0) {
+      await client.query('ROLLBACK');
+      const details = insufficientStock.map(i => `${i.product_name} (yêu cầu: ${i.quantity}, còn: ${i.stock})`).join(', ');
+      return res.status(400).json({
+        message: `Số lượng vượt quá tồn kho: ${details}`,
+      });
     }
 
     // Calculate totals
@@ -124,9 +143,9 @@ exports.create = async (req, res) => {
         [order.id, item.product_id, item.product_name, item.icon, item.bg_color, item.price, item.quantity, item.product_image || '']
       );
 
-      // Update product sold count
+      // Update product sold count and deduct stock
       await client.query(
-        'UPDATE products SET sold = sold + $1 WHERE id = $2',
+        'UPDATE products SET sold = sold + $1, stock = stock - $1 WHERE id = $2',
         [item.quantity, item.product_id]
       );
     }
@@ -175,6 +194,18 @@ exports.cancel = async (req, res) => {
       return res.status(400).json({
         message: 'Không thể hủy đơn hàng. Đơn hàng không tồn tại hoặc đã được xử lý.',
       });
+    }
+
+    // Restore stock for cancelled order items
+    const orderItems = await pool.query(
+      'SELECT product_id, quantity FROM order_items WHERE order_id = $1',
+      [id]
+    );
+    for (const item of orderItems.rows) {
+      await pool.query(
+        'UPDATE products SET stock = stock + $1, sold = GREATEST(0, sold - $1) WHERE id = $2',
+        [item.quantity, item.product_id]
+      );
     }
 
     res.json({

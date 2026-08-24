@@ -55,6 +55,24 @@ exports.addItem = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
 
+    // Check stock availability
+    const stock = product.rows[0].stock;
+    if (!stock || stock <= 0) {
+      return res.status(400).json({ message: 'Sản phẩm đã hết hàng' });
+    }
+
+    // Check if adding quantity exceeds stock (considering items already in cart)
+    const existingCart = await pool.query(
+      'SELECT quantity FROM cart_items WHERE user_id = $1 AND product_id = $2',
+      [req.user.id, productId]
+    );
+    const currentQtyInCart = existingCart.rows.length > 0 ? existingCart.rows[0].quantity : 0;
+    if (currentQtyInCart + quantity > stock) {
+      return res.status(400).json({
+        message: `Số lượng vượt quá tồn kho. Còn lại: ${stock}, trong giỏ: ${currentQtyInCart}`,
+      });
+    }
+
     // Upsert: increment quantity if already in cart
     const result = await pool.query(
       `INSERT INTO cart_items (user_id, product_id, quantity)
