@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sản phẩm yêu thích — ShopNest</title>
+  <meta name="description" content="Danh sách sản phẩm yêu thích của bạn trên ShopNest." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .wishlist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .wishlist-header h2 { font-size: 20px; font-weight: 700; }
+    .wishlist-count { font-size: 14px; color: var(--text-muted); }
+    .wishlist-empty { text-align: center; padding: 60px 20px; }
+    .wishlist-empty .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .wishlist-empty h3 { font-size: 18px; color: var(--text-primary); margin-bottom: 8px; }
+    .wishlist-empty p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+    .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    @media (max-width: 640px) { .wishlist-grid { grid-template-columns: repeat(2, 1fr); } }
+    .wishlist-card { position: relative; }
+    .wishlist-remove {
+      position: absolute; top: 8px; right: 8px; z-index: 10;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.9); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; cursor: pointer; transition: all var(--transition);
+      box-shadow: var(--shadow-xs);
+    }
+    .wishlist-remove:hover { background: #fee2e2; border-color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🏠</span>
+        <span class="logo-text">Shop<b>Nest</b></span>
+      </a>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Bạn đang tìm kiếm gì?" autocomplete="off" />
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+      <div class="nav-actions">
+        <a href="orders.html" class="nav-btn" title="Đơn hàng của tôi">📦 <span>Đơn hàng</span></a>
+        <a href="cart.html" class="nav-btn cart-btn" title="Giỏ hàng">🛒 <span>Giỏ hàng</span><span class="cart-badge" style="display:none">0</span></a>
+        <div class="user-menu">
+          <button class="nav-btn">👤 <span id="navUserName">Tài khoản</span> ▾</button>
+          <div class="user-dropdown">
+            <a href="login.html" data-show="guest">Đăng nhập</a>
+            <a href="register.html" data-show="guest">Đăng ký</a>
+            <a href="profile.html" data-show="user" class="divider">Hồ sơ cá nhân</a>
+            <a href="orders.html" data-show="user">Đơn hàng của tôi</a>
+            <a href="wishlist.html" data-show="user">❤️ Yêu thích</a>
+            <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="cat-nav">
+      <div class="cat-nav-inner">
+        <a href="products.html?cat=dien-tu">📱 Điện tử</a>
+        <a href="products.html?cat=thoi-trang">👗 Thời trang</a>
+        <a href="products.html?cat=gia-dung">🏠 Gia dụng</a>
+        <a href="products.html?cat=sach">📚 Sách</a>
+        <a href="products.html?cat=the-thao">⚽ Thể thao</a>
+        <a href="products.html?cat=lam-dep">💄 Làm đẹp</a>
+        <a href="products.html?cat=thuc-pham">🍎 Thực phẩm</a>
+        <a href="products.html">🛒 Tất cả SP</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container section">
+      <div class="breadcrumb">
+        <a href="index.html">Trang chủ</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Sản phẩm yêu thích</span>
+      </div>
+
+      <div class="wishlist-header">
+        <h2>❤️ Sản phẩm yêu thích</h2>
+        <span class="wishlist-count" id="wishlistCount"></span>
+      </div>
+
+      <div id="wishlistContent">
+        <div style="text-align:center;padding:40px;color:var(--text-muted);">Đang tải...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">Shop<span>Nest</span></div>
+        <p>Nền tảng mua sắm trực tuyến uy tín — đa dạng sản phẩm với giá tốt nhất thị trường Việt Nam.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Hỗ trợ khách hàng</h4>
+        <a href="#">Trung tâm hỗ trợ</a><a href="#">Chính sách đổi trả</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn đặt hàng</a>
+      </div>
+      <div class="footer-col">
+        <h4>Về ShopNest</h4>
+        <a href="#">Giới thiệu</a><a href="#">Tuyển dụng</a><a href="#">Điều khoản dịch vụ</a><a href="#">Chính sách bảo mật</a>
+      </div>
+      <div class="footer-col">
+        <h4>Liên hệ</h4>
+        <p>📧 support@shopnest.vn</p><p>📞 1800 6789 (miễn phí)</p><p>🕐 Thứ 2 – CN: 8:00 – 22:00</p><p>📍 TP. Hồ Chí Minh, Việt Nam</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2024 ShopNest Vietnam. Bản quyền thuộc về ShopNest.</div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Wishlist Page Script
+  ============================================ */
+
+  if (!Auth.requireLogin()) { /* redirect handled */ }
+
+  async function loadWishlist() {
+    try {
+      const data = await wishlistAPI.getAll();
+      const items = data.wishlists || [];
+
+      document.getElementById('wishlistCount').textContent = `${items.length} sản phẩm`;
+
+      if (items.length === 0) {
+        document.getElementById('wishlistContent').innerHTML = `
+          <div class="wishlist-empty card">
+            <div class="empty-icon">💔</div>
+            <h3>Chưa có sản phẩm yêu thích</h3>
+            <p>Hãy khám phá và thêm sản phẩm vào danh sách yêu thích của bạn!</p>
+            <a href="products.html" class="btn btn-primary btn-lg">Khám phá sản phẩm</a>
+          </div>
+        `;
+        return;
+      }
+
+      const grid = items.map(p => {
+        const original = p.original_price || p.price;
+        const disc = calcDiscount(original, p.price);
+        const imgContent = p.image_url
+          ? `<img src="${getProductImageSrc(p)}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.outerHTML='${p.icon || '📦'}'">`
+          : (p.icon || '📦');
+        const bgStyle = p.image_url ? 'background:#fff;' : `background:${p.bg_color || '#F5F5F5'};`;
+        return `
+          <div class="wishlist-card">
+            <button class="wishlist-remove" onclick="event.stopPropagation(); removeWishlist(${p.product_id})" title="Bỏ yêu thích">✕</button>
+            <div class="product-card" onclick="location.href='product-detail.html?id=${p.product_id}'" title="${p.name}">
+              <div class="product-img-wrap">
+                <div class="prod-img" style="${bgStyle}">${imgContent}</div>
+                <span class="product-badge">-${disc}%</span>
+              </div>
+              <div class="product-info">
+                <h4 class="product-name">${p.name}</h4>
+                <div class="product-price">
+                  <span class="price">${formatPrice(p.price)}</span>
+                  <span class="original-price">${formatPrice(original)}</span>
+                </div>
+                <div class="product-meta">
+                  <span class="rating">⭐ ${p.rating || 0}</span>
+                  <span class="sold">Đã bán ${(p.sold || 0) > 999 ? ((p.sold || 0)/1000).toFixed(1)+'k' : (p.sold || 0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('wishlistContent').innerHTML = `<div class="wishlist-grid">${grid}</div>`;
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('wishlistContent').innerHTML =
+        '<div style="text-align:center;padding:40px;color:var(--text-muted);">Không thể tải danh sách yêu thích.</div>';
+    }
+  }
+
+  async function removeWishlist(productId) {
+    try {
+      await wishlistAPI.toggle(productId);
+      showToast('Đã bỏ khỏi yêu thích', 'info');
+      loadWishlist();
+    } catch (err) {
+      showToast('Lỗi: ' + err.message, 'error');
+    }
+  }
+
+  /* ── Search ─── */
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (q) location.href = `products.html?q=${encodeURIComponent(q)}`;
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  /* ── Navbar username ─── */
+  const user = Auth.getUser();
+  if (user) {
+    const el = document.getElementById('navUserName');
+    if (el) el.textContent = user.name.split(' ').pop();
+  }
+
+  loadWishlist();
+  </script>
+</body>
+</html>

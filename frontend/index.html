@@ -43,6 +43,7 @@
             <a href="register.html" data-show="guest">Đăng ký</a>
             <a href="profile.html" data-show="user" class="divider">Hồ sơ cá nhân</a>
             <a href="orders.html" data-show="user">Đơn hàng của tôi</a>
+            <a href="wishlist.html" data-show="user">❤️ Yêu thích</a>
             <a href="admin/dashboard.html" data-show="admin" class="divider">👑 Quản trị Admin</a>
             <a href="#" id="logoutBtn" data-show="user" class="divider">Đăng xuất</a>
           </div>
@@ -151,6 +152,14 @@
       </div>
     </div>
 
+    <!-- ── Đã xem gần đây ────────────────── -->
+    <div class="container section" id="recentlyViewedSection" style="display:none;">
+      <div class="section-header">
+        <h3>🕐 Đã xem gần đây</h3>
+      </div>
+      <div class="product-grid" id="recentlyViewedGrid"></div>
+    </div>
+
   </main>
 
   <!-- ╔══════════════════════════════════════╗
@@ -251,6 +260,30 @@
 
     // Init load
     loadHomepage();
+
+    /* ── Load Recently Viewed ──────────────── */
+    async function loadRecentlyViewed() {
+      try {
+        const ids = RecentlyViewed.get().slice(0, 8);
+        if (ids.length === 0) return;
+
+        const products = [];
+        for (const id of ids) {
+          try {
+            const data = await productAPI.getById(id);
+            if (data.product) products.push(data.product);
+          } catch (e) { /* skip */ }
+        }
+
+        if (products.length === 0) return;
+
+        document.getElementById('recentlyViewedSection').style.display = 'block';
+        document.getElementById('recentlyViewedGrid').innerHTML = products.map(p => renderCard(p)).join('');
+      } catch (err) {
+        console.error('Recently viewed error:', err);
+      }
+    }
+    loadRecentlyViewed();
 
     /* ── Countdown Timer ─────────────────────── */
     let endTime = Date.now() + 2 * 3600000 + 34 * 60000 + 56000;

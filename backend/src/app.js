@@ -6,12 +6,14 @@ const express = require('express');
 const cors    = require('cors');
 const path    = require('path');
 
-const authRoutes    = require('./routes/authRoutes');
-const productRoutes = require('./routes/productRoutes');
-const cartRoutes    = require('./routes/cartRoutes');
-const orderRoutes   = require('./routes/orderRoutes');
-const reviewRoutes  = require('./routes/reviewRoutes');
-const adminRoutes   = require('./routes/adminRoutes');
+const authRoutes      = require('./routes/authRoutes');
+const productRoutes   = require('./routes/productRoutes');
+const cartRoutes      = require('./routes/cartRoutes');
+const orderRoutes     = require('./routes/orderRoutes');
+const reviewRoutes    = require('./routes/reviewRoutes');
+const adminRoutes     = require('./routes/adminRoutes');
+const addressRoutes   = require('./routes/addressRoutes');
+const wishlistRoutes  = require('./routes/wishlistRoutes');
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.use('/api/reviews',    reviewRoutes);
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/users',      require('./routes/userRoutes'));
 app.use('/api/admin',      adminRoutes);
+app.use('/api/addresses',  addressRoutes);
+app.use('/api/wishlists',  wishlistRoutes);
 
 /* ── Health Check ──────────────────────────── */
 app.get('/api', (req, res) => {

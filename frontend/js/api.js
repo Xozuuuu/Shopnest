@@ -94,6 +94,10 @@ const authAPI = {
   register: (name, email, password) => POST('/auth/register', { name, email, password }),
   logout:   ()                    => POST('/auth/logout',   null, true),
   me:       ()                    => GET('/auth/me',        true),
+  forgotPassword: (email)         => POST('/auth/forgot-password', { email }),
+  resetPassword:  (token, newPassword) => POST('/auth/reset-password', { token, newPassword }),
+  verifyEmail:    (token)         => GET(`/auth/verify-email?token=${token}`),
+  resendVerify:   ()              => POST('/auth/resend-verify', null, true),
 };
 
 /* ── Products ────────────────────────────── */
@@ -102,6 +106,7 @@ const productAPI = {
   getById: (id)          => GET(`/products/${id}`),
   search:  (q)           => GET(`/products/search?q=${encodeURIComponent(q)}`),
   getByCategory: (cat)   => GET(`/products?category=${cat}`),
+  getRelated: (id)       => GET(`/products/${id}/related`),
   // Admin only
   create:  (data)        => POST('/products',      data, true),
   update:  (id, data)    => PUT(`/products/${id}`, data, true),
@@ -158,6 +163,23 @@ const dashboardAPI = {
   revenueChart:  () => GET('/admin/dashboard/revenue-chart', true),
   recentOrders:  () => GET('/admin/dashboard/orders',  true),
   topProducts:   () => GET('/admin/dashboard/products',true),
+};
+
+/* ── Addresses ───────────────────────────── */
+const addressAPI = {
+  getAll:     ()          => GET('/addresses',              true),
+  create:     (data)      => POST('/addresses',       data, true),
+  update:     (id, data)  => PUT(`/addresses/${id}`,  data, true),
+  delete:     (id)        => DELETE(`/addresses/${id}`,     true),
+  setDefault: (id)        => PUT(`/addresses/${id}/default`, {}, true),
+};
+
+/* ── Wishlist ────────────────────────────── */
+const wishlistAPI = {
+  getAll:  ()          => GET('/wishlists',              true),
+  getIds:  ()          => GET('/wishlists/ids',          true),
+  toggle:  (productId) => POST('/wishlists/toggle', { productId }, true),
+  check:   (productId) => GET(`/wishlists/check/${productId}`, true),
 };
 
 /* ── Auth State Helpers ───────────────────── */
@@ -299,6 +321,20 @@ function renderStars(rating) {
   const empty = 5 - full - half;
   return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
 }
+
+/* ── Recently Viewed Helper ─────────────── */
+const RecentlyViewed = {
+  _key: 'sn_recently_viewed',
+  _max: 20,
+  get() { return JSON.parse(localStorage.getItem(this._key) || '[]'); },
+  add(productId) {
+    let ids = this.get().filter(id => id !== productId);
+    ids.unshift(productId);
+    if (ids.length > this._max) ids = ids.slice(0, this._max);
+    localStorage.setItem(this._key, JSON.stringify(ids));
+  },
+  clear() { localStorage.removeItem(this._key); },
+};
 
 /* ── Product Image Helper ──────────────────── */
 /* ── Product Image Helper ──────────────────── */

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xác thực email — ShopNest</title>
+  <meta name="description" content="Xác thực địa chỉ email cho tài khoản ShopNest." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <!-- Logo -->
+      <div class="auth-logo">
+        <a href="index.html">🏠 Shop<span>Nest</span></a>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingState">
+        <div style="text-align:center;padding:32px 0;">
+          <div style="font-size:48px;margin-bottom:12px;">⏳</div>
+          <p style="color:var(--text-muted);font-size:14px;">Đang xác thực email...</p>
+        </div>
+      </div>
+
+      <!-- Success state -->
+      <div id="successState" style="display:none;">
+        <div style="text-align:center;padding:24px 0;">
+          <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+          <h3 style="color:#22c55e;margin-bottom:8px;">Xác thực email thành công!</h3>
+          <p style="color:var(--text-secondary);font-size:14px;">Tài khoản của bạn đã được xác thực. Bạn có thể sử dụng đầy đủ các tính năng của ShopNest.</p>
+          <div style="margin-top:16px;">
+            <a href="index.html" class="btn btn-primary btn-lg" style="display:inline-block;">Về trang chủ</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorState" style="display:none;">
+        <div style="text-align:center;padding:24px 0;">
+          <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+          <h3 style="color:var(--primary);margin-bottom:8px;">Xác thực thất bại</h3>
+          <p style="color:var(--text-secondary);font-size:14px;" id="errorMsg">Link xác thực không hợp lệ hoặc email đã được xác thực trước đó.</p>
+          <div style="margin-top:16px;">
+            <a href="index.html" class="btn btn-outline btn-lg" style="display:inline-block;">Về trang chủ</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+  /* ============================================
+     Verify Email Script
+  ============================================ */
+
+  async function verifyEmail() {
+    const token = new URLSearchParams(location.search).get('token');
+
+    if (!token) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMsg').textContent = 'Thiếu token xác thực.';
+      return;
+    }
+
+    try {
+      await authAPI.verifyEmail(token);
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('successState').style.display = 'block';
+      
+      // Cập nhật local storage nếu user đang đăng nhập
+      const user = Auth.getUser();
+      if (user) {
+        user.email_verified = true;
+        localStorage.setItem('sn_user', JSON.stringify(user));
+      }
+    } catch (err) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMsg').textContent = err.message || 'Có lỗi xảy ra khi xác thực email.';
+    }
+  }
+
+  verifyEmail();
+  </script>
+</body>
+</html>

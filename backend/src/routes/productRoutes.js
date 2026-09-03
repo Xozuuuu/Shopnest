@@ -8,9 +8,10 @@ const admin  = require('../middleware/adminMiddleware');
 const ctrl   = require('../controllers/productController');
 
 // Public
-router.get('/search', ctrl.search);
-router.get('/',       ctrl.getAll);
-router.get('/:id',    ctrl.getById);
+router.get('/search',       ctrl.search);
+router.get('/',             ctrl.getAll);
+router.get('/:id/related',  ctrl.getRelated);
+router.get('/:id',          ctrl.getById);
 
 // Admin only
 router.post('/',      auth, admin, ctrl.create);

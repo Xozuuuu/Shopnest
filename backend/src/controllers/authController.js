@@ -1,10 +1,13 @@
 /* =============================================
    SHOPNEST — Auth Controller
+   Phiên bản: 2.0.0 | Ngày cập nhật: 03/09/2026
    ============================================= */
 
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/db');
+const jwt    = require('jsonwebtoken');
+const crypto = require('crypto');
+const pool   = require('../config/db');
+const { sendVerifyEmail, sendResetPasswordEmail } = require('../config/email');
 
 /* ── Helper: generate JWT ────────────────────── */
 function generateToken(user) {
@@ -50,18 +53,26 @@ exports.register = async (req, res) => {
     // Hash password
     const password_hash = await bcrypt.hash(password, 10);
 
-    // Insert user
+    // Generate email verification token
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
+
+    // Insert user (email_verified = false for new users)
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash)
-       VALUES ($1, $2, $3) RETURNING *`,
-      [name, email, password_hash]
+      `INSERT INTO users (name, email, password_hash, email_verified, email_verify_token)
+       VALUES ($1, $2, $3, FALSE, $4) RETURNING *`,
+      [name, email, password_hash, emailVerifyToken]
     );
 
     const user = result.rows[0];
     const token = generateToken(user);
 
+    // Send verification email (non-blocking)
+    sendVerifyEmail(email, emailVerifyToken).catch(err => {
+      console.error('Send verify email error:', err);
+    });
+
     res.status(201).json({
-      message: 'Đăng ký thành công!',
+      message: 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
       token,
       user: sanitizeUser(user),
     });
@@ -194,5 +205,141 @@ exports.changePassword = async (req, res) => {
   } catch (err) {
     console.error('Change password error:', err);
     res.status(500).json({ message: 'Lỗi server khi đổi mật khẩu' });
+  }
+};
+
+/* ── POST /api/auth/forgot-password ────────────── */
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Vui lòng nhập email' });
+    }
+
+    // Find user
+    const result = await pool.query('SELECT id, name, email FROM users WHERE email = $1', [email]);
+    
+    // Luôn trả về thành công để tránh lộ thông tin email nào đã đăng ký
+    if (result.rows.length === 0) {
+      return res.json({ message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.' });
+    }
+
+    const user = result.rows[0];
+
+    // Generate reset token (expires in 30 minutes)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 phút
+
+    await pool.query(
+      'UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3',
+      [resetToken, resetExpires, user.id]
+    );
+
+    // Send email
+    await sendResetPasswordEmail(user.email, resetToken);
+
+    res.json({ message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ message: 'Lỗi server khi xử lý yêu cầu' });
+  }
+};
+
+/* ── POST /api/auth/reset-password ─────────────── */
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Thiếu thông tin bắt buộc' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Mật khẩu mới cần ít nhất 6 ký tự' });
+    }
+
+    // Find user by reset token
+    const result = await pool.query(
+      'SELECT id FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn' });
+    }
+
+    const userId = result.rows[0].id;
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset token
+    await pool.query(
+      'UPDATE users SET password_hash = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2',
+      [newHash, userId]
+    );
+
+    res.json({ message: 'Đặt lại mật khẩu thành công! Bạn có thể đăng nhập với mật khẩu mới.' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Lỗi server khi đặt lại mật khẩu' });
+  }
+};
+
+/* ── GET /api/auth/verify-email?token=... ────────── */
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Thiếu token xác thực' });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET email_verified = TRUE, email_verify_token = NULL WHERE email_verify_token = $1 RETURNING id, email',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'Link xác thực không hợp lệ hoặc email đã được xác thực' });
+    }
+
+    res.json({ message: 'Xác thực email thành công! 🎉' });
+  } catch (err) {
+    console.error('Verify email error:', err);
+    res.status(500).json({ message: 'Lỗi server khi xác thực email' });
+  }
+};
+
+/* ── POST /api/auth/resend-verify ───────────────── */
+exports.resendVerify = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      'SELECT email, email_verified FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    if (result.rows[0].email_verified) {
+      return res.json({ message: 'Email đã được xác thực rồi' });
+    }
+
+    // Generate new token
+    const newToken = crypto.randomBytes(32).toString('hex');
+    await pool.query(
+      'UPDATE users SET email_verify_token = $1 WHERE id = $2',
+      [newToken, userId]
+    );
+
+    await sendVerifyEmail(result.rows[0].email, newToken);
+
+    res.json({ message: 'Đã gửi lại email xác thực!' });
+  } catch (err) {
+    console.error('Resend verify error:', err);
+    res.status(500).json({ message: 'Lỗi server khi gửi lại email xác thực' });
   }
 };

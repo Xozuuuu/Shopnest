@@ -184,6 +184,41 @@ exports.getById = async (req, res) => {
   }
 };
 
+/* ── GET /api/products/:id/related ──────────── */
+exports.getRelated = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Lấy category_id của sản phẩm hiện tại
+    const productResult = await pool.query(
+      'SELECT category_id FROM products WHERE id = $1',
+      [id]
+    );
+
+    if (productResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+
+    const categoryId = productResult.rows[0].category_id;
+
+    // Lấy sản phẩm cùng category, loại trừ sản phẩm hiện tại
+    const result = await pool.query(
+      `SELECT p.*, c.name AS category_name, c.slug AS category_slug
+       FROM products p
+       LEFT JOIN categories c ON p.category_id = c.id
+       WHERE p.category_id = $1 AND p.id != $2
+       ORDER BY p.sold DESC
+       LIMIT 8`,
+      [categoryId, id]
+    );
+
+    res.json({ products: result.rows });
+  } catch (err) {
+    console.error('Get related products error:', err);
+    res.status(500).json({ message: 'Lỗi server khi lấy sản phẩm liên quan' });
+  }
+};
+
 /* ── POST /api/products (Admin) ──────────────── */
 exports.create = async (req, res) => {
   try {
